@@ -1,0 +1,12 @@
+dow.jones.components.yahoo <- function(){
+				install.packages("XML")
+				library(XML) #Load package. WE need readHTMLTable function from this package
+				
+				url = readLines('http://finance.yahoo.com/q/cp?s=^DJI+Components')
+				
+				all <- readHTMLTable(url, stringsAsFactors=FALSE)$yfncsumtab # readHTMLTable creates a dataframe. You could use the functions "names(readHTMLTable(url))" to see which tables are available. The values are stored in "yfncsumtab" table
+				
+				names(all)<- all[5,] # First, the table appears with the headers "V1, V2,...". More convinient to make headers from the 5th row
+				all <-all[-(1:5),] # First 5 rows contain some rubbish
+				DJComponents <- all[,1] # The symbols are in the 1st column
+				DJComponents} # The prolongation of this function could be to run it periodically to see the change in components
