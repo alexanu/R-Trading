@@ -18,3 +18,10 @@ sp500_components <- function(){
       				all <- as.data.frame(readHTMLTable(url), stringsAsFactors=FALSE)) # Usually, readHTMLTable creates a dataframe, however here it is somehow a list
       				SP500_Components <- all[,2] # The symbols are in the 2nd column
       				SP500_Components} # The prolongation of this function could be to run it periodically to see the change in components
+
+
+install.packages("XML")
+library(XML) #Load package. We need readHTMLTable function from this package
+urls<-c('http://www.cboe.com/products/snp500.aspx', 'http://www.cboe.com/products/indexcomponents.aspx')
+tabla <- lapply(urls, function (url) as.data.frame(readHTMLTable(readLines(url))))
+class(tabla)
