@@ -10,3 +10,11 @@ dow.jones.components.yahoo <- function(){
 				all <-all[-(1:5),] # First 5 rows contain some rubbish
 				DJComponents <- all[,1] # The symbols are in the 1st column
 				DJComponents} # The prolongation of this function could be to run it periodically to see the change in components
+sp500_components <- function(){
+      				install.packages("XML")
+      				library(XML) #Load package. We need readHTMLTable function from this package
+  
+      				url = readLines('http://www.cboe.com/products/snp500.aspx')
+      				all <- as.data.frame(readHTMLTable(url), stringsAsFactors=FALSE)) # Usually, readHTMLTable creates a dataframe, however here it is somehow a list
+      				SP500_Components <- all[,2] # The symbols are in the 2nd column
+      				SP500_Components} # The prolongation of this function could be to run it periodically to see the change in components
