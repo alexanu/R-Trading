@@ -28,9 +28,21 @@ nsdq100_components <- function(){
 				tickers = temp[, 'Symbol']
 				return(tickers)
 
-
+#------------------------------------------------------------------------------------------------------------------
 install.packages("XML")
 library(XML) #Load package. We need readHTMLTable function from this package
 urls<-c('http://www.cboe.com/products/snp500.aspx', 'http://www.cboe.com/products/indexcomponents.aspx')
 tabla <- lapply(urls, function (url) as.data.frame(readHTMLTable(readLines(url))))
 class(tabla)
+
+
+#------------------------------------------------------------------------------------------------------------------
+library(data.table)
+spdr = unlist(strsplit("XLY,XLP,XLE,XLF,XLV,XLI,XLB,XLK,XLU", split=",")) # strsplit result the list, but we need character => we need unlist
+url <- paste0("http://www.sectorspdr.com/sectorspdr/IDCO.Client.Spdrs.Holdings/Export/ExportCsv?symbol=", 
+	 spdr) # paste0("a", "b") == paste("a", "b", sep="")
+d <- do.call(cbind, lapply(url, fread))
+d <- subset(d, select = c("Symbol","Index Weight"))
+colnames(d)[which(names(d) == "Symbol")] <- spdr
+colnames(d)[which(names(d) == "Index Weight")] <- paste0(spdr,"_weight")
+head(d)
