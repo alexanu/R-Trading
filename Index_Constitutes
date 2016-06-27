@@ -36,7 +36,7 @@ tabla <- lapply(urls, function (url) as.data.frame(readHTMLTable(readLines(url))
 class(tabla)
 
 
-#------------------------------------------------------------------------------------------------------------------
+# Constituetes of SPDRs -------------------------------------------------------------------------------------------------------
 library(data.table)
 spdr = unlist(strsplit("XLY,XLP,XLE,XLF,XLV,XLI,XLB,XLK,XLU", split=",")) # strsplit result the list, but we need character => we need unlist
 url <- paste0("http://www.sectorspdr.com/sectorspdr/IDCO.Client.Spdrs.Holdings/Export/ExportCsv?symbol=", 
@@ -46,3 +46,13 @@ d <- subset(d, select = c("Symbol","Index Weight"))
 colnames(d)[which(names(d) == "Symbol")] <- spdr
 colnames(d)[which(names(d) == "Index Weight")] <- paste0(spdr,"_weight")
 head(d)
+
+
+
+
+
+
+
+
+
+
