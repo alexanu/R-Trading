@@ -1,0 +1,8 @@
+Path <- "L:\\AGCS\\CFO\\Metadata\\For 2013\\Weight table\\tick_data" # The directory where all the tick data files are stored
+tickers <- gsub(".txt", "", # I need to get rid of file extensions
+		    list.files(path = Path)) # ...give a list of all the files in the directory
+Symbol_Path <- paste0(Path ,"\\",tickers,".txt")
+datalist = lapply(Symbol_Path, FUN=read.table, stringsAsFactors=FALSE, header=TRUE) #creates list: reads all  the txt file from the folder and every dataframe in separate list componentassuming tab separated values with a header    
+datalist <- mapply(cbind, datalist , "Ticker"=tickers, SIMPLIFY=F) # add new column to every dataframe in the list and fills it with the symbol
+datafr = do.call("rbind", datalist) #merges down all the dataframes
+datafr[,3:7]<-sapply(datafr[,3:7], as.numeric) # transforming needed columns to numeric
