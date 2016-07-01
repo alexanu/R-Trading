@@ -6,3 +6,9 @@ datalist = lapply(Symbol_Path, FUN=read.table, stringsAsFactors=FALSE, header=TR
 datalist <- mapply(cbind, datalist , "Ticker"=tickers, SIMPLIFY=F) # add new column to every dataframe in the list and fills it with the symbol
 datafr = do.call("rbind", datalist) #merges down all the dataframes
 datafr[,3:7]<-sapply(datafr[,3:7], as.numeric) # transforming needed columns to numeric
+
+
+# How to implement the stuff above with plyr
+paths <- dir("data", pattern = "\\.csv$", full.names = TRUE) # generates a vector of file names in a directory (data/) which match a regular expression (ends in .csv)
+names(paths) <- basename(paths) # name each element of the vector with the name of the le.
+ldply(paths, read.csv, stringsAsFactors = FALSE) # loops over each path, reading in the csv  file and combining the results into a single data frame
