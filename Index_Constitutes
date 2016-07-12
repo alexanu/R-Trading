@@ -40,12 +40,17 @@ class(tabla)
 library(data.table)
 spdr = unlist(strsplit("XLY,XLP,XLE,XLF,XLV,XLI,XLB,XLK,XLU", split=",")) # strsplit result the list, but we need character => we need unlist
 url <- paste0("http://www.sectorspdr.com/sectorspdr/IDCO.Client.Spdrs.Holdings/Export/ExportCsv?symbol=", 
-	 spdr) # paste0("a", "b") == paste("a", "b", sep="")
-d <- do.call(cbind, lapply(url, fread))
-d <- subset(d, select = c("Symbol","Index Weight"))
-colnames(d)[which(names(d) == "Symbol")] <- spdr
-colnames(d)[which(names(d) == "Index Weight")] <- paste0(spdr,"_weight")
-head(d)
+	 	  spdr) # paste0("a", "b") == paste("a", "b", sep="")
+
+datalist = lapply(url, #creates list: reads all  the txt file from the folder and every dataframe in separate list componentassuming tab separated values with a header    
+                  FUN=fread, # fread from the package "DATA.TABLE" does it much faster than read.table (standard functionality). The comparison of time could be done using function system.time(x), where x is our expression
+                  stringsAsFactors=FALSE,
+			colClasses = c("character", "character", "numeric"))
+datalist <- lapply(datalist, function(x) x[,(4:9):=NULL]) # deleting not needed columns from every data.table
+datalist <- mapply(cbind, datalist , "SPDR"=spdr , SIMPLIFY=F) # add new column to every data.table in the list and fills it with the symbol
+datatb = rbindlist(datalist) # merging rows
+datatb[,(3):=as.numeric(datatb[,(3)])] 
+
 
 
 
