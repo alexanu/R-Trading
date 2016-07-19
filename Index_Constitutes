@@ -39,27 +39,25 @@ class(tabla)
 # Constituetes of SPDRs -------------------------------------------------------------------------------------------------------
 library(data.table)
 spdr = unlist(strsplit("XLY,XLP,XLE,XLF,XLV,XLI,XLB,XLK,XLU", split=",")) # strsplit result the list, but we need character => we need unlist
-url <- paste0("http://www.sectorspdr.com/sectorspdr/IDCO.Client.Spdrs.Holdings/Export/ExportCsv?symbol=", 
-	 	  spdr) # paste0("a", "b") == paste("a", "b", sep="")
-
-datalist = lapply(url, #creates list: reads all  the txt file from the folder and every dataframe in separate list componentassuming tab separated values with a header    
+url <- paste0("http://www.sectorspdr.com/sectorspdr/IDCO.Client.Spdrs.Holdings/Export/ExportCsv?symbol=",
+               spdr) # paste0("a", "b") == paste("a", "b", sep="")
+datalist<-NULL # clear datalist (just in case)
+datalist = lapply(url, #creates list: reads all  the txt file from the folder and every dataframe in separate list componentassuming tab separated values with a header   
                   FUN=fread, # fread from the package "DATA.TABLE" does it much faster than read.table (standard functionality). The comparison of time could be done using function system.time(x), where x is our expression
-			select =1:3) # we need only first 3 columns
+                  select =1:3) # we need only first 3 columns
 datalist <- mapply(cbind, datalist , "SPDR"=spdr , SIMPLIFY=F) # add new column to every data.table in the list and fills it with the symbol
 datatb = rbindlist(datalist) # merging rows
 setnames(datatb, make.names(colnames(datatb))) # this remove spaces from column names
-datatb[,Index.Weight:=as.numeric(as.factor(datatb[,Index.Weight]))]
+datatb[, Index.Weight:= as.numeric(gsub("%","",Index.Weight))/100] # the weight are somehow not regognized as numeric (probably because of the % sign). I delete "%" and then everything is fine.
 
-
-
-datatb[,Index.Weight:=as.numeric((datatb[,Index.Weight]))]
-datatb[SPDR=="XLP"]
-datatb[,sum(Index.Weight), by=SPDR]
-datatb[,Index.Weight:=Index.Weight/1000]
-datatb[,head(.SD,3), by=SPDR] # returns the first 3 rows for every ticker
-datalist<-NULL
-sapply(datatb,class)
-
+# Some additional steps for analysis
+datatb[,sum(Index.Weight), by=SPDR] # check if the weight add up to 100%
+datatb[SPDR=="XLP"] # shows all rows related to 1 SPDR
+datatb[,.(Num_of_members= length(Symbol), # returns the number of members...
+          CR3=sum(head(Index.Weight,3)), # ...share of TOP 3 holdings...
+          CR10=sum(head(Index.Weight,10))), # ...share of TOP 10 holdings...
+       by=SPDR] # ... for every ticker
+sapply(datatb,class) # show class of every column
 
 
 
