@@ -1,0 +1,59 @@
+install.packages("data.table")# we need the function "fread" from this package.
+install.packages("fasttime") # we need the function "fastPOSIXct" from this package.
+install.packages("lubridate")
+
+library(data.table) # we need the function "fread" from this package.
+library(fasttime) # we need the function "fastPOSIXct" from this package
+library(lubridate)
+library(ggplot2)
+
+Path <- "L:\\AGCS\\CFO\\Metadata\\For 2013\\Weight table\\tick_data" # The directory where all the tick data files are stored
+tickers <- gsub(".txt", "", # I need to get rid of file extensions
+			list.files(path = Path)) # ...give a list of all the files in the directory
+Symbol_Path <- paste0(Path ,"\\",tickers,".txt")
+datalist = lapply(Symbol_Path, #creates list: reads all  the txt file from the folder and every dataframe in separate list componentassuming tab separated values with a header   
+			FUN=fread, # fread from the package "DATA.TABLE" does it much faster than read.table (standard functionality). The comparison of time could be done using function system.time(x), where x is our expression
+			stringsAsFactors=FALSE,
+			dec=",") # OLHC data has comma as a decimal separator   
+
+datalist <- mapply(cbind, datalist , "Ticker"=tickers, SIMPLIFY=F) # add new column to every dataframe in the list and fills it with the symbol
+datatb = rbindlist(datalist) # #merges down all the data tables. The function is from data.table package. Another way is to do like this: "do.call("rbind", datalist)". The alternative way could be slower
+datatb[,Date:=paste(format(as.Date(datatb[,Date],format="%d.%m.%Y"),"%Y-%m-%d"),datatb[,Time],sep=" ")] # the date and time are in 2 columns: we need to merge them
+datatb[,Date:=fastPOSIXct(datatb[,Date],"GMT")]# This is much faster than to do it with "as.POSIXct" function from standart functionality
+datatb[,':='(Time=NULL, V8=NULL)] # delete not needed column
+datatb[,Volume:=as.numeric(datatb[,Volume])] # we need this in order to work with Volumes as integer is not enough
+
+
+datatb[,.(.N), by=.(weekdays(Date),Ticker)] # number of rows
+datatb[,.(sum(Volume),.N), by=.(wday(Date),hour(Date))] # volume of trades by day and hour
+
+
+
+
+
+Vol_over <-  dcast(datatb[,.(Vol=round(sum(Volume)/1e6, 1)),  # to show in millions
+				  keyby=.(wday(Date,label=TRUE), # we need "keyby" no just "by", because we need sorted data. "wday" is from "lubridate" package
+				  hour(Date),
+				  Ticker)],
+			wday+hour~Ticker, # vertical axes ~ horizontal axis
+			value.var = "Vol") # values
+Vol_over[,wday:=paste(wday,hour,sep=" ")][,':='(hour=NULL)]
+Vol_over[, 2:5:=lapply(.SD, rank),.SDcols = 2:5]
+
+ 
+
+
+
+ggplot(datatb[Date>"2011-11-01" & Date<"2012-11-01"],
+	 aes(x=Date,
+	     y=Close,
+	     colour=Ticker))+
+	geom_line()+
+	geom_smooth()+
+	facet_wrap(~Ticker)
+
+
+ggplot(datatb[(Close-Open)/Open >0.0025],
+	 aes(Date))+
+	geom_histogram(binwidth = 500)+ # or "geom_freqpoly" could be also used
+	facet_wrap(~Ticker)
