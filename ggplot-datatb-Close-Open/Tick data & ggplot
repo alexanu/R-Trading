@@ -106,3 +106,9 @@ ggplot(datatb,
 	 geom_histogram(aes(fill = Ticker), 
 			   position = "fill",
 			   na.rm = TRUE)
+			   
+			   install.packages("hexbin")
+library(hexbin)
+ggplot(datatb[,.(sum(Volume),(mean(Close)-mean(Open))/mean(Open)),by=.(Ticker,year(Date),month(Date,label=TRUE))],
+	 aes(V2,V1))+
+	 geom_hex()
