@@ -93,4 +93,16 @@ ggplot(datatb[Ticker=="LL",.(mean(Volume),mean(Close)),by=.(year(Date),month(Dat
 	geom_point(size = 5)
 
 
+ggplot(datatb[,.(sum(Volume),mean(Close)),by=.(Ticker,year(Date),month(Date,label=TRUE))],
+	 aes(x=paste(year,month,sep=" "),
+	     y=V2,
+	     colour = Ticker))+
+	geom_point(aes(size = V1))+
+	scale_size_area("Monthly volume", breaks = c(1000000, 2000000, 3000000,4000000))
 
+
+ggplot(datatb,
+	 aes(Date))+
+	 geom_histogram(aes(fill = Ticker), 
+			   position = "fill",
+			   na.rm = TRUE)
