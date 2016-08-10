@@ -114,23 +114,20 @@ ggplot(datatb[,.(sum(Volume),(mean(Close)-mean(Open))/mean(Open)),by=.(Ticker,ye
 	 geom_hex()
 	 
 	 
-	 
-	 
-
-datatb[,which.max(Volume), by=list(Ticker,DAY)]
-datatb[datatb[,which.max(Volume), by=list(Ticker,DAY)]]
 
 
-datatb[,DAY:=round_date(Date,"day")]
+datatb[Ticker=="LL" & floor_date(Date,"day")==ymd("2007-11-12",tz="GMT")]
 
 
 
-head(datatb)
-datatb=NULL
 
+
+datatb[,RR:=rank(-1*Volume),by=.(Ticker,floor_date(Date,"month"))] # adds the rank to the trades in every month
 ggplot(datatb[Ticker=="LL"],
 	 aes(x=Date,
 	     y=Close))+
-	geom_line()	
-#geom_point(aes(size=Volume))
-
+	geom_line()+
+	geom_point(data=datatb[Ticker=="LL"& RR=="1"], 
+		     aes(x=Date,
+	     		   y=Close,
+			   size=Volume))
