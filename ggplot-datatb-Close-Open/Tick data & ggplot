@@ -43,14 +43,13 @@ Vol_over[, 2:5:=lapply(.SD, rank),.SDcols = 2:5]
  
 
 
-
 ggplot(datatb[Date>"2011-11-01" & Date<"2012-11-01"],
 	 aes(x=Date,
 	     y=Close,
 	     colour=Ticker))+
 	geom_line()+
 	geom_smooth()+
-	facet_wrap(~Ticker)
+	facet_wrap(~Ticker,scales = "free_y")
 
 
 ggplot(datatb[(Close-Open)/Open >0.0025],
@@ -92,6 +91,8 @@ ggplot(datatb[Ticker=="LL",.(mean(Volume),mean(Close)),by=.(year(Date),month(Dat
 	geom_line(aes(group=1), size = 2)+
 	geom_point(size = 5)
 
+datatb[,.(sum(Volume),mean(Close)),by=.(Ticker,year(Date),month(Date,label=TRUE))]
+
 
 ggplot(datatb[,.(sum(Volume),mean(Close)),by=.(Ticker,year(Date),month(Date,label=TRUE))],
 	 aes(x=paste(year,month,sep=" "),
@@ -101,13 +102,27 @@ ggplot(datatb[,.(sum(Volume),mean(Close)),by=.(Ticker,year(Date),month(Date,labe
 	scale_size_area("Monthly volume", breaks = c(1000000, 2000000, 3000000,4000000))
 
 
+
+
+ggplot(datatb[,.(sum(Volume),mean(Close)),by=.(Ticker,floor_date(Date,"week"))],
+	 aes(x=V1,y=V2))+
+	 geom_point(aes(colour = Ticker)) +
+  	 geom_point(data=datatb[,.(sum(Volume),mean(Close)),by=.(floor_date(Date,"week"))],
+			colour="grey70")+
+	 facet_wrap(~Ticker, ncol=1)
+
+
+
+
 ggplot(datatb,
 	 aes(Date))+
 	 geom_histogram(aes(fill = Ticker), 
 			   position = "fill",
 			   na.rm = TRUE)
 			   
-			   install.packages("hexbin")
+
+
+install.packages("hexbin")
 library(hexbin)
 ggplot(datatb[,.(sum(Volume),(mean(Close)-mean(Open))/mean(Open)),by=.(Ticker,year(Date),month(Date,label=TRUE))],
 	 aes(V2,V1))+
@@ -120,8 +135,6 @@ datatb[Ticker=="LL" & floor_date(Date,"day")==ymd("2007-11-12",tz="GMT")]
 
 
 
-
-
 datatb[,RR:=rank(-1*Volume),by=.(Ticker,floor_date(Date,"month"))] # adds the rank to the trades in every month
 ggplot(datatb[Ticker=="LL"],
 	 aes(x=Date,
@@ -131,3 +144,11 @@ ggplot(datatb[Ticker=="LL"],
 		     aes(x=Date,
 	     		   y=Close,
 			   size=Volume))
+
+
+
+
+ggplot(datatb[Date>"2011-11-01" & Date<"2012-11-02",.((mean(Close)-mean(Open))/mean(Open)),by=.(Ticker,floor_date(Date,"month"))],
+	 aes(V1,
+	     reorder(paste(Ticker,floor_date,sep=" "),V1)))+
+	 geom_point()
