@@ -32,8 +32,8 @@ Available_ETFs<-do.call(merge.xts,check) # transforming list
 colnames(Available_ETFs) <- gsub("[.].*$","",colnames(Available_ETFs)) # removing everything after dot in the name
 Available_ETFs<-t(Available_ETFs) # transposing matrix
 Available_ETFs<- cbind(Available_ETFs, rownames(Available_ETFs)) # addidng another column ...
-colnames(Available_ETFs)[2]<- "Symbol" #...and renaming it
-ETFs <- merge(ETFs, Available_ETFs, by = "Symbol") # Leaving in database only those ETFs, which have data
+Available_ETFs<- cbind(Available_ETFs, Symbol=rownames(Available_ETFs)) # addidng another column ...
+ETFs <- merge(ETFs, Available_ETFs) # Leaving in database only those ETFs, which have data
 
 ################################################################################################################################
 
