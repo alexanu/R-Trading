@@ -14,7 +14,9 @@ library(RCurl) # the following functions from the package are used:...
 library(plyr) # the following functions from the package are used:...
 library(stringr) # the following functions from the package are used:...
 library(quantmod) # the following functions from the package are used:...
-
+library(data.table)
+library(lubridate)
+library(ggplot2)
 
 ######Creating database of ETFs (it was impossible to get the database from google drive, because of firewall in the office)##########
 
@@ -24,17 +26,27 @@ ETF_Currency <- c("USD", "USD", "USD", "USD", "USD", "USD", "USD", "USD", "USD",
 Local_Curr <- c("ARS", "BRL", "BRL", "BRL", "BRL", "CNY", "CNY", "CNY", "CNY", "CNY", "CAD", "CNY", "CLP", "CNY", "DKK", "EUR", "EGP", "IDR", "EUR", "CAD", "NZD", "PHP", "PLN", "PEN", "AUD", "CAD", "SEK", "EUR", "EUR", "HKD", "EUR", "CHF", "MYR", "EUR", "EUR", "EUR", "SGD", "TWD", "GBP", "GBP", "MXN", "KRW", "BRL", "ZAR", "BRL", "CNY", "EUR", "COP", "INR", "INR", "INR", "USD", "AUD", "CNY", "JPY", "NOK", "RUB", "RUB", "INR", "JPY", "THB", "TRY", "VND", "USD", "USD", "USD", "USD", "USD", "USD", "AED", "ILS", "QAR", "EUR", "NGN", "CNY")
 Region <- c("Americas", "Americas", "Americas", "Americas", "Americas", "Asia Pacific", "Asia Pacific", "Asia Pacific", "Asia Pacific", "Asia Pacific", "Americas", "Asia Pacific", "Americas", "Asia Pacific", "Europe", "Europe", "MENA", "Asia Pacific", "Europe", "Americas", "Asia Pacific", "Asia Pacific", "Europe", "Americas", "Asia Pacific", "Americas", "Europe", "Europe", "Europe", "Asia Pacific", "Europe", "Europe", "Asia Pacific", "Europe", "Europe", "Europe", "Asia Pacific", "Asia Pacific", "Europe", "Europe", "Americas", "Asia Pacific", "Americas", "MENA", "Americas", "Asia Pacific", "Europe", "Americas", "MENA", "MENA", "MENA", "Americas", "Asia Pacific", "Asia Pacific", "Asia Pacific", "Europe", "Europe", "Europe", "MENA", "Asia Pacific", "Asia Pacific", "Europe", "Asia Pacific", "Americas", "Americas", "Americas", "Americas", "Americas", "Americas", "MENA", "MENA", "MENA", "Europe", "MENA", "Asia Pacific")
 Country <- c("Argentina", "Brazil", "Brazil", "Brazil", "Brazil", "China", "China", "China", "China", "China", "Canada", "China", "Chile", "China", "Denmark", "Finland", "Egypt", "Indonesia", "Ireland", "Canada", "New Zealand", "Philippines", "Poland", "Peru", "Australia", "Canada", "Sweden", "Germany", "Germany", "HK", "Italy", "Swiss", "Malaysia", "Netherlands", "Spain", "France", "SG", "Taiwan", "UK", "UK", "Mexico", "Skorea", "Brazil", "South Africa", "Brazil", "China", "Greece", "Colombia", "India", "India", "India", "US", "Australia", "China", "Japan", "Norway", "Russia", "Russia", "India", "Japan", "Thailand", "Turkey", "Vietnam", "US", "US", "US", "US", "US", "US", "UAE", "Israel", "Qatar", "Portugal", "Nigeria", "China")
-ETFs<- data.frame(Symbol,Name,ETF_Currency,Local_Curr,Region,Country, stringsAsFactors=FALSE) # merging the vectors from above into a dataframe. We need stringsAsFactors=FALSE to have all members as string, not as factors
+ETFs<- data.table(Symbol,Name,ETF_Currency,Local_Curr,Region,Country) # creating the data.table
 
 #############  Checking if all the symbols are still available ##############################################################
-check <- lapply(ETFs$Symbol, function(x) try(Ad(getSymbols(x,from=Sys.Date()-1, auto.assign=FALSE)),silent=TRUE)) # try returns "ERROR" if symbol doesn't exist (i.e. if getsymbol cannot find quotes from yesterday
+check <- lapply(ETFs$Symbol, function(x) try(Ad(getSymbols(x,from=Sys.Date()-30, auto.assign=FALSE)),silent=TRUE)) # try returns "ERROR" if symbol doesn't exist (i.e. if getsymbol cannot find quotes from yesterday
 Available_ETFs<-do.call(merge.xts,check) # transforming list
 colnames(Available_ETFs) <- gsub("[.].*$","",colnames(Available_ETFs)) # removing everything after dot in the name
 Available_ETFs<-t(Available_ETFs) # transposing matrix
-Available_ETFs<- cbind(Available_ETFs, rownames(Available_ETFs)) # addidng another column ...
 Available_ETFs<- cbind(Available_ETFs, Symbol=rownames(Available_ETFs)) # addidng another column ...
-ETFs <- merge(ETFs, Available_ETFs) # Leaving in database only those ETFs, which have data
+ETFs <- merge(ETFs, Available_ETFs, by="Symbol") # Leaving in database only those ETFs, which have data
 
+#############  Preparing & visualize ############################################################################################
+
+ETFs <-melt(ETFs,id.vars =c(1:6),variable.factor=FALSE,variable.name = "Date", value.name = "Adj_Close") # all the quotes are stored in separate columns for every date. We need to make only one column. Function "melt" is from package "data.table"
+ETFs[,Date:=ymd(Date)]# trasforming to date format. The function "ymd" is from package "lubridate"
+ggplot(ETFs[Symbol=="FBZ" | Symbol=="ENY" | Symbol=="BRAQ"],
+	 aes(x=Date,
+	     y=Adj_Close,
+	     colour=Symbol))+
+	geom_point()+
+	geom_line()+
+	facet_wrap(~Symbol,scales = "free_y",ncol=3) 
 ################################################################################################################################
 
 ETFs_Final <- ETFs # just not to re-run the code above several times
