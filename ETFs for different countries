@@ -38,16 +38,25 @@ ETFs <- merge(ETFs, Available_ETFs, by="Symbol") # Leaving in database only thos
 
 #############  Preparing & visualize ############################################################################################
 
+#############  Preparing & visualize ############################################################################################
+
 ETFs <-melt(ETFs,id.vars =c(1:6),variable.factor=FALSE,variable.name = "Date", value.name = "Adj_Close") # all the quotes are stored in separate columns for every date. We need to make only one column. Function "melt" is from package "data.table"
 ETFs[,Date:=ymd(Date)]# trasforming to date format. The function "ymd" is from package "lubridate"
+ETFs[,Adj_Close:=as.numeric(Adj_Close)] # trasforming to numeric format (otherwise ggplot will not connect dots).
+
+
 ggplot(ETFs[Symbol=="FBZ" | Symbol=="ENY" | Symbol=="BRAQ"],
 	 aes(x=Date,
 	     y=Adj_Close,
 	     colour=Symbol))+
 	geom_point()+
 	geom_line()+
-	facet_wrap(~Symbol,scales = "free_y",ncol=3) 
-################################################################################################################################
+	ylim(0,20)+
+	facet_wrap(~Symbol,scales = "free_y",ncol=1) 
+
+ETFs
+
+lapply(ETFs,class)
 
 ETFs_Final <- ETFs # just not to re-run the code above several times
 
