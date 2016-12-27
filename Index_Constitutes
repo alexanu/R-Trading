@@ -1,8 +1,8 @@
-DJ_components <- function(){
+# the URL doesn't work any more for DJ_components <- function(){ 
 				install.packages("XML")
 				library(XML) #Load package. WE need readHTMLTable function from this package
 				
-				url = readLines('http://finance.yahoo.com/q/cp?s=^DJI+Components')
+				url = readLines('http://finance.yahoo.com/q/cp?s=^DJI+Components') # the URL doesn't work any more
 				
 				all <- readHTMLTable(url, stringsAsFactors=FALSE)$yfncsumtab # readHTMLTable creates a dataframe. You could use the functions "names(readHTMLTable(url))" to see which tables are available. The values are stored in "yfncsumtab" table
 				
@@ -12,11 +12,11 @@ DJ_components <- function(){
 				DJComponents} # The prolongation of this function could be to run it periodically to see the change in components
 
 
-sp500_components <- function(){
+# the URL doesn't work any more for sp500_components <- function(){ 
       				install.packages("XML")
       				library(XML) #Load package. We need readHTMLTable function from this package
   
-      				url = readLines('http://www.cboe.com/products/snp500.aspx')
+      				url = readLines('http://www.cboe.com/products/snp500.aspx') # the URL doesn't work any more
       				all <- as.data.frame(readHTMLTable(url), stringsAsFactors=FALSE)) # Usually, readHTMLTable creates a dataframe, however here it is somehow a list
       				SP500_Components <- all[,2] # The symbols are in the 2nd column
       				SP500_Components} # The prolongation of this function could be to run it periodically to see the change in components
@@ -28,12 +28,19 @@ nsdq100_components <- function(){
 				tickers = temp[, 'Symbol']
 				return(tickers)
 
-#------------------------------------------------------------------------------------------------------------------
-install.packages("XML")
-library(XML) #Load package. We need readHTMLTable function from this package
-urls<-c('http://www.cboe.com/products/snp500.aspx', 'http://www.cboe.com/products/indexcomponents.aspx')
-tabla <- lapply(urls, function (url) as.data.frame(readHTMLTable(readLines(url))))
-class(tabla)
+
+
+sp100_components <- function(){
+      				install.packages("XML")
+      				library(XML) #Load package. We need readHTMLTable function from this package
+  
+      				
+      				all <- as.data.frame(readHTMLTable(url), stringsAsFactors=FALSE)) # Usually, readHTMLTable creates a dataframe, however here it is somehow a list
+      				url = readLines('http://www.cboe.com/products/indexcomponents.aspx')
+				all <- as.data.frame(readHTMLTable(url,header=TRUE,stringsAsFactors=FALSE)) # We nee to insert "stringsAsFactors" already in readHTMLTable to avoid factors. We need to say header=True in to have clear column names.
+				tickers <- all[,"NULL.TICKER"] # the tickers are located in the certain column
+				return(tickers)} # The prolongation of this function could be to run it periodically to see the change in components
+
 
 
 # Constituetes of SPDRs -------------------------------------------------------------------------------------------------------
