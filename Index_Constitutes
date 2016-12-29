@@ -1,45 +1,41 @@
 #Content:
-#1) DJIA components. Status: LINK CHANGED
-#2) SP500 components. Status: LINK CHANGED
+#1) DJIA components. Status: OK
+#2) SP500 components. Status: OK
 #3) NSDQ100 components. Status: OK
 #4) SP100 components. Status: OK
 #5) SPDR components. Status: FIX BUG
 #6) iShares components. Status: UNDER DEVELOPMENT
 
 
-
-
-# the URL doesn't work any more for DJ_components <- function(){ 
+DJ_components <- function(){ 
 				install.packages("XML")
 				library(XML) #Load package. WE need readHTMLTable function from this package
 				
-				url = readLines('http://finance.yahoo.com/q/cp?s=^DJI+Components') # the URL doesn't work any more
-				
-				all <- readHTMLTable(url, stringsAsFactors=FALSE)$yfncsumtab # readHTMLTable creates a dataframe. You could use the functions "names(readHTMLTable(url))" to see which tables are available. The values are stored in "yfncsumtab" table
-				
-				names(all)<- all[5,] # First, the table appears with the headers "V1, V2,...". More convinient to make headers from the 5th row
-				all <-all[-(1:5),] # First 5 rows contain some rubbish
-				DJComponents <- all[,1] # The symbols are in the 1st column
-				DJComponents} # The prolongation of this function could be to run it periodically to see the change in components
+				url = readLines('https://en.wikipedia.org/wiki/Dow_Jones_Industrial_Average#Components')
+				all <- readHTMLTable(url,header=TRUE,stringsAsFactors=FALSE) # We nee to insert "stringsAsFactors" already in readHTMLTable to avoid factors. We need to say header=True in to have clear column names.
+				DJIA <- as.data.frame(all[2]) # The current components are in the 2nd table
+				names(DJIA)<-gsub("NULL.", "", names(DJIA )) # we need to remove "NULL." from the column names
+				DJIA<- subset(DJIA, select = c(Symbol,Company,Date.Added)) # leaving only needed columns
+				DJIA_Components <- DJIA[,"Symbol"] # The symbols are in the 1st column
+				DJIA_Components} # The prolongation of this function could be to run it periodically to see the change in components
 
-
-# the URL doesn't work any more for sp500_components <- function(){ 
+sp500_components <- function(){ 
       				install.packages("XML")
       				library(XML) #Load package. We need readHTMLTable function from this package
   
-      				url = readLines('http://www.cboe.com/products/snp500.aspx') # the URL doesn't work any more
-      				all <- as.data.frame(readHTMLTable(url), stringsAsFactors=FALSE)) # Usually, readHTMLTable creates a dataframe, however here it is somehow a list
-      				SP500_Components <- all[,2] # The symbols are in the 2nd column
-      				SP500_Components} # The prolongation of this function could be to run it periodically to see the change in components
-
+				url = readLines('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies')
+				all <- readHTMLTable(url,header=TRUE,stringsAsFactors=FALSE) # We nee to insert "stringsAsFactors" already in readHTMLTable to avoid factors. We need to say header=True in to have clear column names.
+				SP500 <-as.data.frame(all[1]) # the URL contains 2 tables. The current components are in the 1st table. The 2nd table contains the changes.
+				names(SP500)<-gsub("NULL.", "", names(SP500)) # we need to remove "NULL." from the column names
+				SP500<- subset(SP500, select = c(Ticker.symbol,Security,GICS.Sector,GICS.Sub.Industry)) # leaving only needed columns
+				SP500_Components <- SP500[,"Ticker.symbol"] # The symbols are in the 1st column
+				SP500_Components} # The prolongation of this function could be to run it periodically to see the change in components
 
 nsdq100_components <- function(){
 				url = 'http://www.nasdaq.com/quotes/nasdaq-100-stocks.aspx?render=download'
 				temp = read.csv(url, header=TRUE, stringsAsFactors=F)  
 				tickers = temp[, 'Symbol']
 				return(tickers)
-
-
 
 sp100_components <- function(){
       				install.packages("XML")
