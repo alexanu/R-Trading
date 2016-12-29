@@ -1,3 +1,14 @@
+#Content:
+#1) DJIA components. Status: LINK CHANGED
+#2) SP500 components. Status: LINK CHANGED
+#3) NSDQ100 components. Status: OK
+#4) SP100 components. Status: OK
+#5) SPDR components. Status: FIX BUG
+#6) iShares components. Status: UNDER DEVELOPMENT
+
+
+
+
 # the URL doesn't work any more for DJ_components <- function(){ 
 				install.packages("XML")
 				library(XML) #Load package. WE need readHTMLTable function from this package
@@ -35,7 +46,6 @@ sp100_components <- function(){
       				library(XML) #Load package. We need readHTMLTable function from this package
   
       				
-      				all <- as.data.frame(readHTMLTable(url), stringsAsFactors=FALSE)) # Usually, readHTMLTable creates a dataframe, however here it is somehow a list
       				url = readLines('http://www.cboe.com/products/indexcomponents.aspx')
 				all <- as.data.frame(readHTMLTable(url,header=TRUE,stringsAsFactors=FALSE)) # We nee to insert "stringsAsFactors" already in readHTMLTable to avoid factors. We need to say header=True in to have clear column names.
 				tickers <- all[,"NULL.TICKER"] # the tickers are located in the certain column
@@ -67,6 +77,44 @@ datatb[,.(Num_of_members= length(Symbol), # returns the number of members...
 sapply(datatb,class) # show class of every column
 
 
+
+
+# Get any ishares Components ----------------------------------------------------------------------------------------
+# The link below leads to the location of all 300-350 products of IShares. There is the excel:
+https://www.ishares.com/us/products/etf-product-list#
+#The link below is the example of the link to download ETF constitutes. Quite complex.
+https://www.ishares.com/us/products/239500/ishares-select-dividend-etf/1467271812596.ajax?fileType=csv&fileName=DVY_holdings&dataType=fund
+# The code below is from SIT. The link is old => doesn't work.
+
+us.ishares.components <- function(Symbol = 'DVY', date = NULL, debug = F){
+				url = paste('http://us.ishares.com/product_info/fund/holdings/', 
+					     Symbol, 
+					     '.htm?periodCd=d', 
+					     sep='')
+				if( !is.null(date) ) url = paste('http://us.ishares.com/product_info/fund/holdings/', 
+							    Symbol, 
+							    '.htm?asofDt=', 
+							    date.end(date), 
+							    '&periodCd=m', sep='')
+				txt = join(readLines(url))
+
+				# extract date from this page
+				temp = remove.tags(extract.token(txt, 'Holdings Detail', 'Holdings subject to change')) # these 2 functions are from SIT
+				date = as.Date(spl(trim(temp),' ')[3], '%m/%d/%Y') # the function spl is from SIT
+ 
+				# extract table from this page
+				temp = extract.table.from.webpage (txt, 'Symbol', has.header = T) # the function  is from SIT
+  
+				colnames(temp) = trim(colnames(temp))
+				temp = trim(temp)
+				tickers = temp[, 'Symbol']
+				keep.index = nchar(tickers)>1
+				weights = as.double(temp[keep.index, '% Net Assets']) / 100
+				tickers = tickers[keep.index]
+    
+				out = list(tickers = tickers, weights = weights, date = date)
+				if(debug) out$txt = txt
+				out}
 
 
 
