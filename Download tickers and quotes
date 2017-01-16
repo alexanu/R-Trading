@@ -13,19 +13,35 @@ datalist = lapply(BORSE_URL$urls, #creates list: reads all  the txt file from th
                   header=TRUE)
 datalist <- mapply(cbind, datalist , "Borse"=BORSE_URL$BORSE , SIMPLIFY=F) # add new column to every data.table in the list and fills it with the symbol
 datatb = rbindlist(datalist, fill=TRUE) # merging rows
+datatb[Borse=="NASDAQ",industry:=Industry]
 setnames(datatb, make.names(colnames(datatb))) # this remove spaces from column names
-datatb
-names(datalist[3])
+datatb[,c("LastSale","Summary.Quote","V9","ADR.TSO","Industry","V10"):=NULL]
+
+
+datatb$Symbol[sample(1:length(datatb$Symbol),10,replace=T)]
 
 
 
+Test_Tickers <- datatb$Symbol[sample(1:length(datatb$Symbol),10,replace=T)]
+url_ticker <- paste0("http://chart.finance.yahoo.com/table.csv?s=",
+               	   Test_Tickers,
+			   "&a=11&b=16&c=2016&d=0&e=16&f=2017&g=d&ignore=.csv")
+Path <- paste0("L:\\AGCS\\CFO\\Metadata\\For 2013\\Weight table\\",Test_Tickers,".csv")
+download.file(url_ticker, destfile = Path)
 
-temp = read.csv(url_NYSE, header=TRUE, stringsAsFactors=F)  
-tickers = temp[, 'Symbol']
-return(tickers)
+
+lapply(Test_Tickers,
+	 function(x) download.file(paste0("http://chart.finance.yahoo.com/table.csv?s=",
+               	  			    x,
+			   			    "&a=11&b=16&c=2016&d=0&e=16&f=2017&g=d&ignore=.csv"),
+					   destfile = paste0("L:\\AGCS\\CFO\\Metadata\\For 2013\\Weight table\\",
+								   x,
+								   ".csv")
+					    )
+	)
 
 
 
-all_tickers
-url <- paste0("http://www.sectorspdr.com/sectorspdr/IDCO.Client.Spdrs.Holdings/Export/ExportCsv?symbol=",
-              spdr) # paste0("a", "b") == paste("a", "b", sep="")
+"SCE^D" 
+
+datatb[,.N,by=.(Borse,Industry)]
