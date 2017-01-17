@@ -1,10 +1,13 @@
+
+# We create a dataframe of the urls:
 BORSE <- c("NYSE","NASDAQ","AMEX")
 urls <- c("http://www.nasdaq.com/screening/companies-by-name.aspx?letter=0&exchange=nyse&render=download",
           "http://www.nasdaq.com/screening/companies-by-industry.aspx?exchange=NASDAQ&render=download",
           "http://www.nasdaq.com/screening/companies-by-name.aspx?letter=0&exchange=amex&render=download")
 BORSE_URL <- data.frame(BORSE, urls, stringsAsFactors=F)
-BORSE_URL$urls
+#---------------------------------------------------------------------------------------------------------------------------
 
+# Then we go through every of urls and receive a combine list of all tickers on 3 exchanges
 
 library(data.table)
 datalist<-NULL # clear datalist (just in case)
@@ -12,36 +15,28 @@ datalist = lapply(BORSE_URL$urls, #creates list: reads all  the txt file from th
                   FUN=fread, # fread from the package "DATA.TABLE" does it much faster than read.table (standard functionality). The comparison of time could be done using function system.time(x), where x is our expression
                   header=TRUE)
 datalist <- mapply(cbind, datalist , "Borse"=BORSE_URL$BORSE , SIMPLIFY=F) # add new column to every data.table in the list and fills it with the symbol
-datatb = rbindlist(datalist, fill=TRUE) # merging rows
-datatb[Borse=="NASDAQ",industry:=Industry]
+datatb = rbindlist(datalist, fill=TRUE) # merging rows of 3 lists in one. We need "Fill=True" as there are some columns which appear only in 1 database
+datatb[Borse=="NASDAQ",industry:=Industry] # there are 2 industry columns, named differently. We need to merge them.
 setnames(datatb, make.names(colnames(datatb))) # this remove spaces from column names
-datatb[,c("LastSale","Summary.Quote","V9","ADR.TSO","Industry","V10"):=NULL]
+datatb[,c("LastSale","Summary.Quote","V9","ADR.TSO","Industry","V10"):=NULL] # we should delete not-needed columns
+#----------------------------------------------------------------------------------------------------------
 
+# Now we could start the downloading of files with quotes to the hard drive
 
-datatb$Symbol[sample(1:length(datatb$Symbol),10,replace=T)]
-
-
-
-Test_Tickers <- datatb$Symbol[sample(1:length(datatb$Symbol),10,replace=T)]
-url_ticker <- paste0("http://chart.finance.yahoo.com/table.csv?s=",
-               	   Test_Tickers,
-			   "&a=11&b=16&c=2016&d=0&e=16&f=2017&g=d&ignore=.csv")
-Path <- paste0("L:\\AGCS\\CFO\\Metadata\\For 2013\\Weight table\\",Test_Tickers,".csv")
-download.file(url_ticker, destfile = Path)
-
-
+Test_Tickers <- datatb$Symbol[sample(1:length(datatb$Symbol),10,replace=T)] # we select 10 random tickers from our list
+Path1 <- "&a=11&b=16&c=2010&d=0&e=16&f=2017&g=d&ignore=.csv"
+url_date <- "&a=11&b=16&c=2016&d=0&e=16&f=2017&g=d&ignore=.csv"
+Path_Home <-"C:\\Users\\oleksander.anufriyev\\Documents\\R\\files\\"
+Path_Work <-"L:\\AGCS\\CFO\\Metadata\\For 2013\\Weight table\\"
 lapply(Test_Tickers,
 	 function(x) download.file(paste0("http://chart.finance.yahoo.com/table.csv?s=",
-               	  			    x,
-			   			    "&a=11&b=16&c=2016&d=0&e=16&f=2017&g=d&ignore=.csv"),
-					   destfile = paste0("L:\\AGCS\\CFO\\Metadata\\For 2013\\Weight table\\",
-								   x,
-								   ".csv")
-					    )
+               	  			   x,
+			   		   url_date),
+				   destfile = paste0("C:\\Users\\oleksander.anufriyev\\Documents\\R\\files\\",
+						      x,
+						      ".csv")
+			           )
 	)
 
-
-
 "SCE^D" 
-
 datatb[,.N,by=.(Borse,Industry)]
