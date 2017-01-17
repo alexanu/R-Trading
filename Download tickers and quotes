@@ -35,3 +35,10 @@ lapply(Test_Tickers, # for all selected tickers we apply the function "download.
 
 "SCE^D" 
 datatb[,.N,by=.(Borse,Industry)]
+
+#--------------------------------------------------------------------------------------------------------------------------------------
+# Link to download the stock details looks like this: "http://download.finance.yahoo.com/d/quotes.csv?s=AAPL&f=sl1d1t1c1ohgv&e=.csv"
+Code <- c("")
+Code_Description <- c("
+
+
