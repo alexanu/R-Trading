@@ -19,23 +19,18 @@ datatb = rbindlist(datalist, fill=TRUE) # merging rows of 3 lists in one. We nee
 datatb[Borse=="NASDAQ",industry:=Industry] # there are 2 industry columns, named differently. We need to merge them.
 setnames(datatb, make.names(colnames(datatb))) # this remove spaces from column names
 datatb[,c("LastSale","Summary.Quote","V9","ADR.TSO","Industry","V10"):=NULL] # we should delete not-needed columns
+# The tickers also contain such form as "SCE^D" or "ADM.T". Yahoo doesn't know this
 #----------------------------------------------------------------------------------------------------------
 
 # Now we could start the downloading of files with quotes to the hard drive
 
 Test_Tickers <- datatb$Symbol[sample(1:length(datatb$Symbol),10,replace=T)] # we select 10 random tickers from our list
-Path1 <- "&a=11&b=16&c=2010&d=0&e=16&f=2017&g=d&ignore=.csv"
-url_date <- "&a=11&b=16&c=2016&d=0&e=16&f=2017&g=d&ignore=.csv"
+url_date <- "&a=11&b=16&c=2016&d=0&e=16&f=2017&g=d&ignore=.csv" # this is just the continuation of the link with dates
 Path_Home <-"C:\\Users\\oleksander.anufriyev\\Documents\\R\\files\\"
 Path_Work <-"L:\\AGCS\\CFO\\Metadata\\For 2013\\Weight table\\"
-lapply(Test_Tickers,
-	 function(x) download.file(paste0("http://chart.finance.yahoo.com/table.csv?s=",
-               	  			   x,
-			   		   url_date),
-				   destfile = paste0("C:\\Users\\oleksander.anufriyev\\Documents\\R\\files\\",
-						      x,
-						      ".csv")
-			           )
+lapply(Test_Tickers, # for all selected tickers we apply the function "download.file"
+	function(x) download.file(paste0("http://chart.finance.yahoo.com/table.csv?s=",x,url_date),
+				   destfile = paste0(Path_Work,x,".csv"))
 	)
 
 "SCE^D" 
