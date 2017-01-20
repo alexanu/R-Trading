@@ -1,11 +1,19 @@
 # Status as of 29th of Dec 2016
 # Content:
+#	0) Check package "TAWNY"
 #	1) DJIA components. Status: OK
 #	2) SP500 components. Status: OK
 #	3) NSDQ100 components. Status: OK
 #	4) SP100 components. Status: OK
 #	5) SPDR components. Status: OK
 #	6) iShares components. Status: UNDER DEVELOPMENT
+
+
+Check package "TAWNY"
+require(tawny)
+indx <- getIndexComposition('^DJI')
+for(stk in indx) { getSymbols(stk) }
+
 
 
 DJ_components <- function(){ 
