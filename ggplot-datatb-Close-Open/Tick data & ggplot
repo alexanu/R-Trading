@@ -24,11 +24,8 @@ datatb[,':='(Time=NULL, V8=NULL)] # delete not needed column
 datatb[,Volume:=as.numeric(datatb[,Volume])] # we need this in order to work with Volumes as integer is not enough
 
 
-datatb[,.(.N), by=.(weekdays(Date),Ticker)] # number of rows
-datatb[,.(sum(Volume),.N), by=.(wday(Date),hour(Date))] # volume of trades by day and hour
-
-
-
+datatb[,.(.N), by=.(weekdays(Date),Ticker)] # number of rows per weekday and ticker
+datatb[,.(sum(Volume),.N), by=.(wday(Date),hour(Date))] # volume of trades by day and hour. "wday" is from "lubridate" package
 
 
 Vol_over <-  dcast(datatb[,.(Vol=round(sum(Volume)/1e6, 1)),  # to show in millions
@@ -37,10 +34,9 @@ Vol_over <-  dcast(datatb[,.(Vol=round(sum(Volume)/1e6, 1)),  # to show in milli
 				  Ticker)],
 			wday+hour~Ticker, # vertical axes ~ horizontal axis
 			value.var = "Vol") # values
-Vol_over[,wday:=paste(wday,hour,sep=" ")][,':='(hour=NULL)]
-Vol_over[, 2:5:=lapply(.SD, rank),.SDcols = 2:5]
+Vol_over[,wday:=paste(wday,hour,sep=" ")][,':='(hour=NULL)] # 1st part merges days and hours; 2nd part deletes the not-needed hour column
+Vol_over[, 2:5:=lapply(.SD, rank),.SDcols = 2:5] # ranks the periods for every ticker
 
- 
 
 
 ggplot(datatb[Date>"2011-11-01" & Date<"2012-11-01"],
@@ -52,10 +48,10 @@ ggplot(datatb[Date>"2011-11-01" & Date<"2012-11-01"],
 	facet_wrap(~Ticker,scales = "free_y")
 
 
-ggplot(datatb[(Close-Open)/Open >0.0025],
+ggplot(datatb[(Close-Open)/Open >0.025], # Daily change more than 2.5%
 	 aes(Date))+
 	geom_histogram()+ # or "geom_freqpoly" could be also used
-	facet_wrap(~Ticker, ncol=1)
+	facet_wrap(~Ticker, ncol=1) # putting 4 charts 1 under another
 
 
 
