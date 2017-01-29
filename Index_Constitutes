@@ -124,6 +124,25 @@ us.ishares.components <- function(Symbol = 'DVY', date = NULL, debug = F){
 
 
 
+# Get PowerShares Components ----------------------------------------------------------------------------------------
+# There is "dlPowerShares" function in the qmao package. If the function is called with its defaults, ...
+# ...it will download the PowerShares product list from http://www.invescopowershares.com/products/
+# In the qmao package, dlPowerShares is used by getHoldings.powershares. 
+# Also, getHoldings will call getHoldings.powershares if one of the Symbols passed to it is the symbol of a PowerShares ETF.
+
+	require("qmao")
+	Symbol <- "PGX"
+	dat <- dlPowerShares(event.target = "ctl00$MainPageLeft$MainPageContent$ExportHoldings1$LinkButton1", # the first string ...
+				# ... inside of the javascript:__doPostBack() function that you will get when you ...
+				# ... right click the “Download” link and “Copy Link Address”.
+                            action = paste0("holdings.aspx?ticker=", Symbol)) # the product-specific part of the action url
+			    
+# Internally, the code searches the source of the page for the values of the fields for the "aspnetForm". 
+# It then uses those values in a call to postForm (from the RCurl package.)
+
+
+
+
 
 
 
