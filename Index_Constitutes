@@ -7,6 +7,7 @@
 #	4) SP100 components. Status: OK
 #	5) SPDR components. Status: OK
 #	6) iShares components. Status: UNDER DEVELOPMENT
+#	7) PowerShares components with qmao package
 
 
 Check package "TAWNY"
