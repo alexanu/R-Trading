@@ -1,0 +1,79 @@
+getwd()
+
+search()
+library()
+
+install.packages("curl")
+
+#Load packages
+library(RCurl) # the following functions from the package are used:...
+library(plyr) # the following functions from the package are used:...
+library(stringr) # the following functions from the package are used:...
+library(quantmod) # the following functions from the package are used:...
+library(data.table)
+library(lubridate)
+library(ggplot2)
+library(PerformanceAnalytics)
+library(curl)
+
+id <- "0BxvMvfwI5rgZZ3YxdmlDaFZEVDA" # google file ID
+ETFDB <- read.csv2(sprintf("https://docs.google.com/uc?id=%s&export=download", id),row.names = NULL)
+row.names(oanda.currencies)
+getFX("USD/EUR") # A convenience wrapper to getSymbols(x,src='oanda')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
