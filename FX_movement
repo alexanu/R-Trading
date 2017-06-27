@@ -23,7 +23,42 @@ getFX("USD/EUR") # A convenience wrapper to getSymbols(x,src='oanda')
 
 
 
+install.packages("psych")
+library(psych) # has a function which combines head and tail
 
+#================================================================================#
+
+install.packages("fxregime")
+library(fxregime)
+
+data("FXRatesCHF")
+headTail(FXRatesCHF)
+
+#================================================================================#
+install.packages("lucr") # 
+library(lucr)
+
+key <- "2267e9ca092c411584b066dd16ba1f75"
+
+conversion_rates(currency = "USD", key)
+
+
+
+#================================================================================#
+install.packages("TFX") # source of rates - TrueFX.com
+library(TFX)
+
+username <-"Kalmar"
+password <-"Theanswer1"
+
+QueryTrueFX(
+		ConnectTrueFX(username=username, 
+				  password=password,
+				  format="csv"), 
+		parse=FALSE)
+
+
+#================================================================================#
 
 
 
