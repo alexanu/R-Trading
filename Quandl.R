@@ -1,20 +1,28 @@
 # Quandl
 
-install.packages("Quandl")
-library(Quandl)
 library(data.table)
+install.packages("googlesheets") # many other useful pkges are installed as well
+install.packages("data.table")
+
 
 
 library(googlesheets)
+library(magrittr) # googlesheets pkg uses pipes
+gs_ls() # this command delivers the URL, which you should enter into the browser and allow. You will get the key, which you need to paste in R.
 
-search()
-library()
+Quandl_DB <- gs_title("Quandl_DB") %>% # If you plan to consume data from a sheet or edit it, you must first register it
+                gs_read(ws=1,range = cell_rows(4:200) ) %>%
+                  as.data.frame.table()  
+Quandl_DB <- Quandl_DB[,c("Freq.Status", "Freq.Category" ,"Freq.Source.Name","Freq.Source","Freq.Max.pages")] # keeping only the needed columns
+Quandl_DB <- Quandl_DB[Freq.Status=="1"]
+sapply(Quandl_DB, class)
+Quandl_DB["Freq.Status"=="1"]
 
-install.packages("devtools")
-devtools::install_github("jennybc/googlesheets")
-require(googlesheets)
 
-version
+
+
+install.packages("Quandl")
+library(Quandl)
 
 # If you would like to make more than 50 calls a day, 
 # however, you will need to create a free Quandl account and set your API key
