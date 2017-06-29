@@ -11,11 +11,12 @@ BORSE_URL <- data.frame(BORSE, urls, stringsAsFactors=F)
 
 library(data.table)
 datalist<-NULL # clear datalist (just in case)
-datalist = lapply(BORSE_URL$urls, #creates list: reads all  the txt file from the folder and every dataframe in separate list componentassuming tab separated values with a header   
+datalist = lapply(BORSE_URL$urls, #creates list: reads all  the txt file from the folder and every dataframe in separate list component assuming tab separated values with a header   
                   FUN=fread, # fread from the package "DATA.TABLE" does it much faster than read.table (standard functionality). The comparison of time could be done using function system.time(x), where x is our expression
                   header=TRUE)
 datalist <- mapply(cbind, datalist , "Borse"=BORSE_URL$BORSE , SIMPLIFY=F) # add new column to every data.table in the list and fills it with the symbol
-datatb = rbindlist(datalist, fill=TRUE) # merging rows of 3 lists in one. We need "Fill=True" as there are some columns which appear only in 1 database
+datatb = rbindlist(datalist, # merging rows of 3 lists in one
+		   fill=TRUE) # we need "Fill=True" as there are some columns which appear only in 1 database
 datatb[Borse=="NASDAQ",industry:=Industry] # there are 2 industry columns, named differently. We need to merge them.
 setnames(datatb, make.names(colnames(datatb))) # this remove spaces from column names
 datatb[,c("LastSale","Summary.Quote","V9","ADR.TSO","Industry","V10"):=NULL] # we should delete not-needed columns
@@ -41,9 +42,23 @@ lapply(Test_Tickers, # for all selected tickers we apply the function "download.
 # The quantmod function "getQuote" allows to do it as well, but not transparent
 
 # We create a dataframe of the YAHOO commands:
-Indicator_Group <- c("General","General","General","General","Trading Stat","Trading Stat","Trading Stat","Trading Stat","Trading Stat","Trading Stat","Trading Stat","Trading Stat","Trading Stat","Trading Stat","Trading Stat","Trading Stat","Trading Stat","Trading Stat","Trading Stat","Trading Stat","Trading Stat","Trading Stat","Trading Stat","Trading Stat","Real-time","Real-time","Real-time","Real-time","Real-time","Real-time","Real-time","Real-time","Share Stat","Share Stat","Share Stat","Financials: Income","Financials: Income","Financials: Income","Financials: Income","Financials: Income","Financials: Income","Dividends","Dividends","Dividends","Dividends","Valuation","Valuation","Valuation","Valuation","Valuation","Valuation","Valuation","Valuation","Valuation","Valuation","Check","Check","Check","Check","Check","Check","Check","Check")
+Indicator_Group <- c("General","General","General","General",
+		     "Trading Stat","Trading Stat","Trading Stat","Trading Stat","Trading Stat","Trading Stat","Trading Stat","Trading Stat","Trading Stat","Trading Stat","Trading Stat","Trading Stat","Trading Stat","Trading Stat","Trading Stat","Trading Stat","Trading Stat","Trading Stat","Trading Stat","Trading Stat",
+		     "Real-time","Real-time","Real-time","Real-time","Real-time","Real-time","Real-time","Real-time",
+		     "Share Stat","Share Stat","Share Stat",
+		     "Financials: Income","Financials: Income","Financials: Income","Financials: Income","Financials: Income","Financials: Income",
+		     "Dividends","Dividends","Dividends","Dividends",
+		     "Valuation","Valuation","Valuation","Valuation","Valuation","Valuation","Valuation","Valuation","Valuation","Valuation",
+		     "Check","Check","Check","Check","Check","Check","Check","Check")
+Indicator_Name <- c("Symbol","Name","Stock Exchange","Currency",
+		    "Bid","Ask","Previous Close","Open","Percent Change From 52-week High","Percent Change From 52-week Low","Day’s Range","Trade Date","High Limit","Low Limit","Last Trade (Price Only)","Last Trade (With Time)","Last Trade Date","Last Trade Size","Last Trade Time","Volume","Average Daily Volume","Bid Size","Ask Size","Short Ratio",
+		    "Last Trade (Real-time) With Time","Change (Real-time)","Change Percent (Real-time)","Day’s Range (Real-time)","After Hours Change (Real-time)","Bid (Real-time)","Ask (Real-time)","Order Book (Real-time)",
+		    "Float Shares","Shares Outstanding","Shares Owned",
+		    "Earnings/Share","EPS Estimate Current Year","EPS Estimate Next Year","EPS Estimate Next Quarter","EBITDA","Revenue",
+		    "Dividend/Share","Ex-Dividend Date","Dividend Pay Date","Dividend Yield",
+		    "P/E Ratio","P/E Ratio (Real-time)","Price/EPS Estimate Current Year","Price/EPS Estimate Next Year","PEG Ratio","Price/Sales","Price/Book","Market Capitalization","Market Cap (Real-time)","Book Value",
+		    "Commission","Error Indication (returned for symbol changed / invalid)","Trade Links Additional","More Info","Notes","Price Paid","Trade Links","Ticker Trend")
 Indicator_YHOO_Code <- c("s","n","x","c4","b","a","p","o","k5","j6","m","d2","l2","l3","l1","l","d1","k3","t1","v","a2","b6","a5","s7","k1","c6","k2","m2","c8","b3","b2","i5","f6","j2","s1","e","e7","e8","e9","j4","s6","d","q","r1","y","r","r2","r6","r7","r5","p5","p6","j1","j3","b4","c3","e1","f0","i","n4","p1","t6","t7")
-Indicator_Name <- c("Symbol","Name","Stock Exchange","Currency","Bid","Ask","Previous Close","Open","Percent Change From 52-week High","Percent Change From 52-week Low","Day’s Range","Trade Date","High Limit","Low Limit","Last Trade (Price Only)","Last Trade (With Time)","Last Trade Date","Last Trade Size","Last Trade Time","Volume","Average Daily Volume","Bid Size","Ask Size","Short Ratio","Last Trade (Real-time) With Time","Change (Real-time)","Change Percent (Real-time)","Day’s Range (Real-time)","After Hours Change (Real-time)","Bid (Real-time)","Ask (Real-time)","Order Book (Real-time)","Float Shares","Shares Outstanding","Shares Owned","Earnings/Share","EPS Estimate Current Year","EPS Estimate Next Year","EPS Estimate Next Quarter","EBITDA","Revenue","Dividend/Share","Ex-Dividend Date","Dividend Pay Date","Dividend Yield","P/E Ratio","P/E Ratio (Real-time)","Price/EPS Estimate Current Year","Price/EPS Estimate Next Year","PEG Ratio","Price/Sales","Price/Book","Market Capitalization","Market Cap (Real-time)","Book Value","Commission","Error Indication (returned for symbol changed / invalid)","Trade Links Additional","More Info","Notes","Price Paid","Trade Links","Ticker Trend")
 Indicator_YHOO <- data.table(Indicator_Group, Indicator_YHOO_Code, Indicator_Name, stringsAsFactors=F)
 
 Indicator_YHOO[,paste(Indicator_YHOO_Code, collapse = ''),by=.(Indicator_Group)] # the "paste" command concatenates all yahoo codes
