@@ -18,16 +18,18 @@ for(stk in indx) { getSymbols(stk) }
 
 
 DJ_components <- function(){ 
-				install.packages("XML")
-				library(XML) #Load package. WE need readHTMLTable function from this package
+		install.packages("XML")
+		library(XML) #Load package. WE need readHTMLTable function from this package
 				
-				url = readLines('https://en.wikipedia.org/wiki/Dow_Jones_Industrial_Average#Components')
-				all <- readHTMLTable(url,header=TRUE,stringsAsFactors=FALSE) # We nee to insert "stringsAsFactors" already in readHTMLTable to avoid factors. We need to say header=True in to have clear column names.
-				DJIA <- as.data.frame(all[2]) # The current components are in the 2nd table
-				names(DJIA)<-gsub("NULL.", "", names(DJIA )) # we need to remove "NULL." from the column names
-				DJIA<- subset(DJIA, select = c(Symbol,Company,Date.Added)) # leaving only needed columns
-				DJIA_Components <- DJIA[,"Symbol"] # The symbols are in the 1st column
-				DJIA_Components} # The prolongation of this function could be to run it periodically to see the change in components
+		url = readLines('https://en.wikipedia.org/wiki/Dow_Jones_Industrial_Average#Components')
+		all <- readHTMLTable(url,
+				     header=TRUE, # header=True to have clear column names
+				     stringsAsFactors=FALSE) # insert "stringsAsFactors" already in readHTMLTable to avoid factors
+		DJIA <- as.data.frame(all[2]) # The current components are in the 2nd table
+		names(DJIA)<-gsub("NULL.", "", names(DJIA )) # we need to remove "NULL." from the column names
+		DJIA<- subset(DJIA, select = c(Symbol,Company,Date.Added)) # leaving only needed columns
+		DJIA_Components <- DJIA[,"Symbol"] # The symbols are in the 1st column
+		DJIA_Components} # The prolongation of this function could be to run it periodically to see the change in components
 
 sp500_components <- function(){ 
       				install.packages("XML")
@@ -53,7 +55,7 @@ sp100_components <- function(){
   
       				
       				url = readLines('http://www.cboe.com/products/indexcomponents.aspx')
-				all <- as.data.frame(readHTMLTable(url,header=TRUE,stringsAsFactors=FALSE)) # We nee to insert "stringsAsFactors" already in readHTMLTable to avoid factors. We need to say header=True in to have clear column names.
+				all <- as.data.frame(readHTMLTable(url,header=TRUE,stringsAsFactors=FALSE)) 
 				tickers <- all[,"NULL.TICKER"] # the tickers are located in the certain column
 				return(tickers)} # The prolongation of this function could be to run it periodically to see the change in components
 
@@ -61,15 +63,19 @@ sp100_components <- function(){
 
 # Constituetes of SPDRs -------------------------------------------------------------------------------------------------------
 library(data.table)
-spdr = unlist(strsplit("XLY,XLP,XLE,XLF,XLV,XLI,XLB,XLK,XLU", split=",")) # strsplit result the list, but we need character => we need unlist
+spdr = unlist( # strsplit result the list, but we need character => we need unlist
+		strsplit("XLY,XLP,XLE,XLF,XLV,XLI,XLB,XLK,XLU", split=",")) 
 url <- paste0("http://www.sectorspdr.com/sectorspdr/IDCO.Client.Spdrs.Holdings/Export/ExportCsv?symbol=",
                spdr) # paste0("a", "b") == paste("a", "b", sep="")
 datalist<-NULL # clear datalist (just in case)
-datalist = lapply(url, #creates list: reads all  the txt file from the folder and every dataframe in separate list componentassuming tab separated values with a header   
+datalist = lapply(url, #creates list of dataframes assuming tab separated values with a header   
                   FUN=fread, # fread from the package "DATA.TABLE" does it much faster than read.table (standard functionality). The comparison of time could be done using function system.time(x), where x is our expression
 		  skip=1, # we need to start from the 2nd row, as there is some crap in the 1st row
                   select =1:3) # we need only first 3 columns
-datalist <- mapply(cbind, datalist , "SPDR"=spdr , SIMPLIFY=F) # add new column to every data.table in the list and fills it with the symbol
+datalist <- mapply(cbind, # add new column ...
+		   datalist, # ...to every data.table in the list ...
+		   "SPDR"=spdr ,  # ... and fills it with the symbol
+		   SIMPLIFY=F) 
 datatb = rbindlist(datalist) # merging rows
 setnames(datatb, make.names(colnames(datatb))) # this remove spaces from column names
 datatb[, Index.Weight:= as.numeric(gsub("%","",Index.Weight))/100] # the weight are somehow not regognized as numeric (probably because of the % sign). I delete "%" and then everything is fine.
