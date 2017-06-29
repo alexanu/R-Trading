@@ -7,13 +7,10 @@
 #	6) sends the PDF to the email
 ###############################################
 
-install.packages("quantmod")
-
-#Load packages
-library(RCurl) # the following functions from the package are used:...
-library(plyr) # the following functions from the package are used:...
-library(stringr) # the following functions from the package are used:...
-library(quantmod) # the following functions from the package are used:...
+library(RCurl) 
+library(plyr)
+library(stringr)
+library(quantmod)
 library(data.table)
 library(lubridate)
 library(ggplot2)
@@ -37,19 +34,24 @@ Country <- c("Argentina", "Brazil", "Brazil", "Brazil", "Brazil", "China", "Chin
 ETFs<- data.table(Symbol,Name,ETF_Currency,Local_Curr,Region,Country) # creating the data.table
 
 #############  Checking if all the symbols are still available ##############################################################
-check <- lapply(ETFs$Symbol, function(x) try(Ad(getSymbols(x,from=Sys.Date()-30, auto.assign=FALSE)),silent=TRUE)) # try returns "ERROR" if symbol doesn't exist (i.e. if getsymbol cannot find quotes from yesterday
+
+
+check <- lapply(ETFs$Symbol, 
+		function(x) try(# try returns "ERROR" if ... 
+				Ad(getSymbols(x,from=Sys.Date()-30, auto.assign=FALSE)), # ... symbol doesn't exist (i.e. if getsymbol cannot find quotes)
+		silent=TRUE)) 
 Available_ETFs<-do.call(merge.xts,check) # transforming list
 colnames(Available_ETFs) <- gsub("[.].*$","",colnames(Available_ETFs)) # removing everything after dot in the name
 Available_ETFs<-t(Available_ETFs) # transposing matrix
 Available_ETFs<- cbind(Available_ETFs, Symbol=rownames(Available_ETFs)) # addidng another column ...
 ETFs <- merge(ETFs, Available_ETFs, by="Symbol") # Leaving in database only those ETFs, which have data
 
-#############  Preparing & visualize ############################################################################################
 
 #############  Preparing & visualize ############################################################################################
 
-ETFs <-melt(ETFs,id.vars =c(1:6),variable.factor=FALSE,variable.name = "Date", value.name = "Adj_Close") # all the quotes are stored in separate columns for every date. We need to make only one column. Function "melt" is from package "data.table"
-ETFs[,Date:=ymd(Date)]# trasforming to date format. The function "ymd" is from package "lubridate"
+# all the quotes are stored in separate columns for every date. We need to make only one column. 
+ETFs <-data.table::melt(ETFs,id.vars =c(1:6),variable.factor=FALSE,variable.name = "Date", value.name = "Adj_Close") 
+ETFs[,Date:=lubridate::ymd(Date)] # trasforming to date format
 ETFs[,Adj_Close:=as.numeric(Adj_Close)] # trasforming to numeric format (otherwise ggplot will not connect dots).
 
 
@@ -72,7 +74,10 @@ ETFs_Final <- ETFs # just not to re-run the code above several times
 
 Add_Col_ETF <- function(ret) { # I decided to go with function in order to have less code for calculation of returns of different length
 				Start_Date = Sys.Date()-(ret*2) #format should be “2015-01-19”
-				Stocks <- lapply(ETFs_Final$Symbol, function(sym) ROC(Ad(na.omit(getSymbols(sym, from=Start_Date, auto.assign=FALSE))),n=ret)) # calculating the return
+				Stocks <- lapply(ETFs_Final$Symbol, 
+						function(sym) ROC( # calculating the return
+								  Ad(na.omit(getSymbols(sym, from=Start_Date, auto.assign=FALSE))),
+								  n=ret)) 
 				Stocks <- do.call(merge.xts,Stocks) # transforming list
 				Stocks <-Stocks[Sys.Date()-1,] # leaving only the returns for the last date
 				colnames(Stocks) <- gsub("[.].*$","",colnames(Stocks)) # removing everything after dot in the name
@@ -87,9 +92,7 @@ Add_Col_ETF(1) # adding 1D return to database
 Add_Col_ETF(5) # adding 5D (i.e. 1W) return to database
 Add_Col_ETF(20) # adding 20D (i.e. 1M) return to database
 ETFs_Final <- ETFs_Final[order(ETFs$Region, ETFs$Country),] # sorting by region
-ETFs_Final[,7:ncol(ETFs_Final)]<- sapply(ETFs_Final[,7:ncol(ETFs_Final)], function(x) as.numeric(as.character(x))) # transforming last 4 columns into numeric
+ETFs_Final[,7:ncol(ETFs_Final)]<- sapply(ETFs_Final[,7:ncol(ETFs_Final)], 
+					 function(x) as.numeric(as.character(x))) # transforming last 4 columns into numeric
 ETFs_Final[,"Ret_4"] <- (ETFs_Final$Ret_5+1)/(ETFs_Final$Ret_1+1) - 1 # Calculating 4D return
 ETFs_Final[,"Ret_3W"] <- (ETFs_Final$Ret_20+1)/(ETFs_Final$Ret_5+1) - 1 # Calculating 3W return
-sapply(ETFs_Final, class) # defining class of every column in the data frame
-
-ETFs_Final
