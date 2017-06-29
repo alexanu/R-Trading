@@ -12,11 +12,11 @@ gs_ls() # this command delivers the URL, which you should enter into the browser
 
 Quandl_DB <- gs_title("Quandl_DB") %>% # If you plan to consume data from a sheet or edit it, you must first register it
                 gs_read(ws=1,range = cell_rows(4:200) ) %>%
-                  as.data.frame.table()  
-Quandl_DB <- Quandl_DB[,c("Freq.Status", "Freq.Category" ,"Freq.Source.Name","Freq.Source","Freq.Max.pages")] # keeping only the needed columns
-Quandl_DB <- Quandl_DB[Freq.Status=="1"]
-sapply(Quandl_DB, class)
-Quandl_DB["Freq.Status"=="1"]
+                  as.data.table()  
+setnames(Quandl_DB, make.names(colnames(Quandl_DB))) # this remove spaces from column names
+Quandl_DB <- Quandl_DB[Status=="1"& Max.pages<70, # restrcting only to needed sources
+                       c(1:4,9)] # keeping only the needed columns
+
 
 
 
