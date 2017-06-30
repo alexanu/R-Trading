@@ -21,6 +21,43 @@ Quandl_DB <- Quandl_DB[Status=="1"& Max.pages<70, # restrcting only to needed so
 
 
 
+##############################################################################################################
+################################# AT WORK ###################################################################
+
+Path <- "L:\\AGCS\\CFO\\Metadata\\For 2013\\Weight table\\QUANDL" # The directory where all the tick data files are stored
+File <- "Quandl_source.csv"
+Quandl_DB <- fread(paste0(Path, "\\",File))
+setnames(Quandl_DB, make.names(colnames(Quandl_DB)))
+Source <- Quandl_DB[Max.pages<70,3] %>% unlist() %>% as.character()
+Max_Pages <- Quandl_DB[Max.pages<70,4] %>% unlist() %>% as.integer()
+Max_Pages_List <- Quandl_DB[Max.pages<70,4]
+
+list(seq(to=Max_Pages))
+seq_along(3:4)
+Max_Pages
+Max_Pages_List
+
+sprintf("https://www.quandl.com/api/v3/datasets.csv?database_code=%s&per_page=100&sort_by=id&page=%s",Source, Pages)
+
+Pages_Vector <- lapply(Max_Pages_List, function(x) seq(to=unlist(Max_Pages_List[x])))
+class(unlist(Max_Pages_List[1]))
+
+
+
+
+sprintf("https://www.quandl.com/api/v3/datasets.csv?database_code=%s&per_page=100&sort_by=id&page=%s",Source, Pages)
+Instruments <- NULL
+
+Instruments <- lapply(sprintf("https://www.quandl.com/api/v3/datasets.csv?database_code=%s&per_page=100&sort_by=id&page=%s",Source, Pages),
+             FUN=read.csv,
+             stringsAsFactors=FALSE)
+Instruments <- do.call(rbind, Instruments)
+nrow(Instruments)
+head(Instruments)
+
+
+
+
 install.packages("Quandl")
 library(Quandl)
 
