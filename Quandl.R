@@ -13,47 +13,28 @@ gs_ls() # this command delivers the URL, which you should enter into the browser
 Quandl_DB <- gs_title("Quandl_DB") %>% # If you plan to consume data from a sheet or edit it, you must first register it
                 gs_read(ws=1,range = cell_rows(4:200) ) %>%
                   as.data.table()  
-setnames(Quandl_DB, make.names(colnames(Quandl_DB))) # this remove spaces from column names
-Quandl_DB <- Quandl_DB[Status=="1"& Max.pages<70, # restrcting only to needed sources
-                       c(1:4,9)] # keeping only the needed columns
 
 
-
-
-
-##############################################################################################################
 ################################# AT WORK ###################################################################
 
 Path <- "L:\\AGCS\\CFO\\Metadata\\For 2013\\Weight table\\QUANDL" # The directory where all the tick data files are stored
 File <- "Quandl_source.csv"
 Quandl_DB <- fread(paste0(Path, "\\",File))
-setnames(Quandl_DB, make.names(colnames(Quandl_DB)))
-Source <- Quandl_DB[Max.pages<70,3] %>% unlist() %>% as.character()
-Max_Pages <- Quandl_DB[Max.pages<70,4] %>% unlist() %>% as.integer()
-Max_Pages_List <- Quandl_DB[Max.pages<70,4]
 
-list(seq(to=Max_Pages))
-seq_along(3:4)
-Max_Pages
-Max_Pages_List
+##############################################################################################################
 
-sprintf("https://www.quandl.com/api/v3/datasets.csv?database_code=%s&per_page=100&sort_by=id&page=%s",Source, Pages)
-
-Pages_Vector <- lapply(Max_Pages_List, function(x) seq(to=unlist(Max_Pages_List[x])))
-class(unlist(Max_Pages_List[1]))
-
-
-
-
-sprintf("https://www.quandl.com/api/v3/datasets.csv?database_code=%s&per_page=100&sort_by=id&page=%s",Source, Pages)
-Instruments <- NULL
-
-Instruments <- lapply(sprintf("https://www.quandl.com/api/v3/datasets.csv?database_code=%s&per_page=100&sort_by=id&page=%s",Source, Pages),
-             FUN=read.csv,
-             stringsAsFactors=FALSE)
+setnames(Quandl_DB, make.names(colnames(Quandl_DB))) # this remove spaces from column names
+Quandl_DB <- Quandl_DB[Status=="1"& Max.pages<70, # restrcting only to needed sources
+                       c(1:4,9)] # keeping only the needed columns
+Source <- Quandl_DB[,4] %>% unlist() %>% as.character() # vector of sources
+Max_Pages <- Quandl_DB[,5] %>% unlist() %>% as.integer() # vector of max pages
+Indicators_URL <- paste0(rep(sprintf("https://www.quandl.com/api/v3/datasets.csv?database_code=%s&per_page=100&sort_by=id&page=", # this the url for getting the database elements
+                                     Source), # creating 1 url per source
+                             Max_Pages), # how many times to repeat each url
+                          sequence(Max_Pages)) # concatenate each url with the page number
+Instruments <- lapply(Indicators_URL, FUN=fread, stringsAsFactors=FALSE)
 Instruments <- do.call(rbind, Instruments)
-nrow(Instruments)
-head(Instruments)
+write.csv(Instruments,file="Example2.csv")
 
 
 
