@@ -6,6 +6,9 @@ library(stringr)
 Nasdaq <- getURL("https://indexes.nasdaqomx.com//docs//AppendixNQGIIndexes.csv") # URL for all nasdaq indexes
 Nasdaq <- as.data.frame(read.csv(textConnection(Nasdaq), header = TRUE, stringsAsFactors = FALSE)) # trasforming to dataframe
 
+# the getURL didn't work in the office, however simple read.csv worked
+
+
 ############### Set of needed transformations of the file #############################################################
 Nasdaq <- subset(Nasdaq, CURRENCY == "EUR") # concentrate only on indexes in EUR
 Nasdaq <- subset(Nasdaq, select = c(Price.Return.Symbol,INDEX.NAME)) # leaving only needed columns
