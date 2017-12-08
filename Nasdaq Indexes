@@ -1,80 +1,58 @@
-#Load packages
-library(RCurl)
-library(plyr)
+library(data.table)
+library(magrittr)
 library(stringr)
 
-Nasdaq <- getURL("https://indexes.nasdaqomx.com//docs//AppendixNQGIIndexes.csv") # URL for all nasdaq indexes
-Nasdaq <- as.data.frame(read.csv(textConnection(Nasdaq), header = TRUE, stringsAsFactors = FALSE)) # trasforming to dataframe
+Nasdaq <- read.csv("https://indexes.nasdaqomx.com//docs//AppendixNQGIIndexes.csv") %>% # the list contains more than 16ths indeces  
+          as.data.table() #the data.table::fread function didn't work in the office, hence transformation into data.table is done in 2 steps
 
-# the getURL didn't work in the office, however simple read.csv worked
+Nasdaq<- Nasdaq[Currency=="EUR", # concentrate only on indexes in EUR (Around 2600 indeces)      
+                list(Price.Return.Symbol,Index.Name, Geography)] # keeping only needed columns
+Nasdaq<- Nasdaq[grep("[0-9]{4}", Price.Return.Symbol)] # leaving only rows, which contain 4-digit code, i.e specific sector
+Nasdaq<- Nasdaq[!grepl("LMEUR", Price.Return.Symbol),] # leaving only rows, which don't have "LM" in the name, i.e. no large, med or small capitalization 
+Nasdaq<- Nasdaq[!grepl(" Cap ", Index.Name),] # If there is "Cap" in the name, it means the index is focused on certain capitalization. We do not need that => need to exclude
+Nasdaq[,Sector.Code:=str_extract(Price.Return.Symbol,"[[:digit:]]{4}")] # new column with 4-digit code sector code
+Nasdaq[,Industry.Code:=str_c(str_sub(Sector.Code,1,1),"000")] # for creation of separate column for the broad sector, we need to extract 1st digit from sector and add "000" to it
+Nasdaq[,Industry.Code:=str_replace(Industry.Code,"0000","0001")] # Oil & Gas has code 0001
+Nasdaq<- Nasdaq[Sector.Code==Industry.Code,] # we will concentrate only on the index for the whole industry, not sub-sectors
+Nasdaq[,Sector.Code:= as.integer(Sector.Code),]
 
 
-############### Set of needed transformations of the file #############################################################
-Nasdaq <- subset(Nasdaq, CURRENCY == "EUR") # concentrate only on indexes in EUR
-Nasdaq <- subset(Nasdaq, select = c(Price.Return.Symbol,INDEX.NAME)) # leaving only needed columns
-Nasdaq <- Nasdaq[grep("[0-9]{4}", Nasdaq$Price.Return.Symbol),] # leaving only rows, which contain 4-digit code, i.e specific sector
-Nasdaq <- Nasdaq[!grepl("LMEUR", Nasdaq$Price.Return.Symbol),] # leaving only rows, which don't have "LM" in the name, i.e. no large, med small capitalization
-Nasdaq <- Nasdaq[!grepl(c(" Cap |BRIC|Europe"), Nasdaq$INDEX.NAME),] # leaving only rows, which don't have " Cap " in the name, i.e. no indication for capitalization (only relevant for US indexes). We need to exclude "BRIC" and "Europe" as well, as it would be difficult later
-#########################################################################################################################
+############# getting the countries & industry information ######################
 
-Country_Code <- substr(Nasdaq$Price.Return.Symbol, 1, 4) # exctract first 4 symbols of the index code: this is used to define countries
-Sector_Code <- str_extract(Nasdaq$Price.Return.Symbol, "[[:digit:]]{4}") # exctract a 4-digit code
-Big_Sector <- paste(substr(Sector_Code, 1, 1), # for creation of separate column for the broad sector, we need to extract 1st digit from sector...
-                    "000", Sep="") #... and add "000" to it
-Big_Sector <- gsub(" ", "", Big_Sector) # somehow it creates it with space => we need to remove spaces
-Big_Sector <- gsub("0000", "0001", Big_Sector) # Oil & Gas has code 0001
-Nasdaq <- cbind(Nasdaq, Country_Code, Big_Sector, Sector_Code) # now we could add 3 columns to the main database
+id <- "16R4aKHBrmykKpE59Mrt5gClkykJuwTBJ" # The file is taken in Dec 2017 from http://www.ftserussell.com/files/support-documents/icb-rgs-structural-conversion-map
+ICB <- read.csv(sprintf("https://docs.google.com/uc?id=%s&export=download", id),   sep=";",   stringsAsFactors = FALSE) %>%  
+        as.data.table() #the data.table::fread function didn't work in the office, hence transformation into data.table is done in 2 steps  
+Industry <- ICB[,.(.N),by=.(Old.ICB.Industry.code, Old.ICB.Industry)]
 
-## Creating mapping for countries
-Country_Code <- c("NQJP", "NQGB", "NQCA", "NQAT", "NQBE", "NQFI", "NQFR", "NQDK", "NQDE", "NQGR", "NQIE", "NQIT", "NQNL", "NQNO", "NQES", "NQSE", "NQCH", "NQAU", "NQNZ", "NQHK", "NQSG", "NQIL", "NQBR", "NQCL", "NQCO", "NQMX", "NQPL", "NQRU", "NQTR", "NQCN", "NQIN", "NQID", "NQMA", "NQKR", "NQPH", "NQTW", "NQTH", "NQEG", "NQMY", "NQZA", "NQUS")
-Country_Name <- c("Japan", "United Kingdom", "Canada", "Austria", "Belgium", "Finland", "France", "Denmark", "Germany", "Greece", "Ireland", "Italy", "Netherlands", "Norway", "Spain", "Sweden", "Switzerland", "Australia", "New Zealand", "Hong Kong", "Singapore", "Israel", "Brazil", "Chile", "Colombia", "Mexico", "Poland", "Russia", "Turkey", "China", "India", "Indonesia", "Morocco", "Korea", "Philippines", "Taiwan", "Thailand", "Egypt", "Malaysia", "South Africa", "US")
-Region <- c("AsiaPacific","UK","NorthAmerica","EU","EU","Nordic","EU","Nordic","EU","EU","UK","EU","EU","Nordic","EU","Nordic","Swiss", "AsiaPacific","AsiaPacific","AsiaPacific","AsiaPacific", "MENA","SouthAmerica","SouthAmerica","SouthAmerica","SouthAmerica","EmEurope","EmEurope","EmEurope","AsiaPacific","MENA","AsiaPacific","MENA","AsiaPacific","AsiaPacific","AsiaPacific","AsiaPacific","MENA","AsiaPacific","MENA","NorthAmerica")
-Countries <- data.frame(Country_Code, Country_Name, Region)
-Nasdaq <- merge(Nasdaq, Countries, by = "Country_Code") #merging main database with country names
-head(Nasdaq)
+id_country <- "1EPWUelh1WHwWTlzWAvj-3C_mfdx_dQmZ"
+Countries <- read.csv(sprintf("https://docs.google.com/uc?id=%s&export=download", id_country),   
+                      sep=";",   stringsAsFactors = FALSE,   skip=1) %>%  
+             as.data.table() #the data.table::fread function didn't work in the office, hence transformation into data.table is done in 2 steps
 
-## Creating mapping for sectors and industry
-Sector_Code <- c("0001", "0530", "0533", "0537", "0570", "0573", "0577", "0580", "0583", "0587", "1000", "1300", "1353", "1357", "1700", "1730", "1737", "1750", "1755", "1757", "1770", "1771", "1775", "1777", "2000", "2300", "2353", "2357", "2700", "2710", "2713", "2717", "2720", "2723", "2727", "2730", "2733", "2737", "2750", "2753", "2757", "2770", "2771", "2773", "2775", "2777", "2779", "2790", "2791", "2793", "2795", "2797", "2799", "3000", "3300", "3355", "3500", "3530", "3535", "3537", "3570", "3573", "3577", "3700", "3720", "3722", "3724", "3726", "3728", "3740", "3743", "3745", "3747", "3760", "3763", "3765", "3767", "3780", "4000", "4530", "4533", "4535", "4537", "4570", "4573", "4577", "5000", "5300", "5330", "5333", "5337", "5370", "5371", "5373", "5375", "5377", "5379", "5500", "5553", "5555", "5557", "5700", "5751", "5752", "5753", "5755", "5757", "5759", "6000", "6530", "6570", "7000", "7530", "7535", "7570", "7573", "7575", "7577", "8000", "8300", "8500", "8530", "8532", "8536", "8538", "8570", "8600", "8630", "8633", "8637", "8670", "8671", "8672", "8673", "8674", "8675", "8676", "8677", "8700", "8770", "8771", "8773", "8775", "8777", "8779", "9000", "9530", "9533", "9535", "9537", "9570", "9572", "9576", "9578")
-Sector_Name <- c("Oil & Gas", "Oil & Gas Producers", "Exploration & Production", "Integrated Oil & Gas", "Oil Equipment, Services & Distribution", "Oil Equipment & Services", "Pipelines", "Alternative Energy", "Renewable Energy Equipment", "Alternative Fuels", "Basic Materials", "Chemicals", "Commodity Chemicals", "Specialty Chemicals", "Basic Resources", "Forestry & Paper", "Paper", "Industrial Metals & Mining", "Nonferrous Metals", "Iron & Steel", "Mining", "Coal", "General Mining", "Gold Mining", "Industrials", "Construction & Materials", "Building Materials & Fixtures", "Heavy Construction", "Industrial Goods & Services", "Aerospace & Defense", "Aerospace", "Defense", "General Industrials", "Containers & Packaging", "Diversified Industrials", "Electronic & Electrical Equipment", "Electrical Components & Equipment", "Electronic Equipment", "Industrial Engineering", "Commercial Vehicles & Trucks", "Industrial Machinery", "Industrial Transportation", "Delivery Services", "Marine Transportation", "Railroads", "Transportation Services", "Trucking", "Support Services", "Business Support Services", "Business Training & Employment Agencies", "Financial Administration", "Industrial Suppliers", "Waste & Disposal Services", "Consumer Goods", "Automobiles & Parts", "Auto Parts", "Food & Beverage", "Beverages", "Distillers & Vintners", "Soft Drinks", "Food Producers", "Farming, Fishing & Plantations", "Food Products", "Personal & Household Goods", "Household Goods & Home Construction", "Durable Household Products", "Nondurable Household Products", "Furnishings", "Home Construction", "Leisure Goods", "Consumer Electronics", "Recreational Products", "Toys", "Personal Goods", "Clothing & Accessories", "Footwear", "Personal Products", "Tobacco", "Health Care", "Health Care Equipment & Services", "Health Care Providers", "Medical Equipment", "Medical Supplies", "Pharmaceuticals & Biotechnology", "Biotechnology", "Pharmaceuticals", "Consumer Services", "Retail", "Food & Drug Retailers", "Drug Retailers", "Food Retailers & Wholesalers", "General Retailers", "Apparel Retailers", "Broadline Retailers", "Home Improvement Retailers", "Specialized Consumer Services", "Specialty Retailers", "Media", "Broadcasting & Entertainment", "Media Agencies", "Publishing", "Travel & Leisure", "Airlines", "Gambling", "Hotels", "Recreational Services", "Restaurants & Bars", "Travel & Tourism", "Telecommunications", "Fixed Line Telecommunications", "Mobile Telecommunications", "Utilities", "Electricity", "Conventional Electricity", "Gas, Water & Multi-utilities", "Gas Distribution", "Multi-utilities", "Water", "Financials", "Banks", "Insurance", "Nonlife Insurance", "Full Line Insurance", "Property & Casualty Insurance", "Reinsurance", "Life Insurance", "Real Estate", "Real Estate Investment & Services", "Real Estate Holding & Development", "Real Estate Services", "Real Estate Investment Trusts", "Industrial & Office REITs", "Retail REITs", "Residential REITs", "Diversified REITs", "Specialty REITs", "Mortgage REITs", "Hotel & Lodging REITs", "Financial Services", "Financial Services", "Asset Managers", "Consumer Finance", "Specialty Finance", "Investment Services", "Mortgage Finance", "Technology", "Software & Computer Services", "Computer Services", "Internet", "Software", "Technology Hardware & Equipment", "Computer Hardware", "Semiconductors", "Telecommunications Equipment")
-Sectors <- data.frame(Sector_Code, Sector_Name)
-Nasdaq <- merge(Nasdaq, Sectors, by = "Sector_Code") # merging main database with sector names
-Big_Sector <-Sectors[grep("000", Sectors$Sector_Code),] # creating industry groups by extracting only rows, whic hahave 000 in the code 
-names(Big_Sector) <- c("Big_Sector","Broad_Sector") # renaming headers
-Nasdaq <- merge(Big_Sector, Nasdaq, by = "Big_Sector") # merging main database with industry names
+############ vlookuping from the google drive tables ############################
+setkey(Nasdaq,Sector.Code)
+setkey(Industry,Old.ICB.Industry.code)
+    Nasdaq<- Nasdaq[Industry,nomatch=0]
 
-## Cleaning-up
-Nasdaq<-subset(Nasdaq, select = -c(Big_Sector, Sector_Code, Country_Code)) # deleting not needed columns
-Nasdaq <- Nasdaq[,c(2,3,5,4,1,6)] # changing the sequence of columns
-Nasdaq <- Nasdaq[order(Nasdaq$Region,Nasdaq$Country_Name,Nasdaq$Broad_Sector,Nasdaq$Sector_Name),] # sorting the database
+setkey(Nasdaq,Geography)
+setkey(Countries,Nasdaq.Country.Code) 
+    Nasdaq<- Nasdaq[Countries,nomatch=0]
 
-################################################################################################################
+# Could be done like this:
+# Nasdaq[Geography %in% Countries$Nasdaq.Country.Code,]
+# ... but no additional columns appear. It is just filtering
 
-install.packages("xlsx") # There is also package @gdata@, however it could get data from HTTPS
-library (xlsx)
-library (gdata)
-library(RCurl)
-library(plyr)
-library(stringr)
-
+Nasdaq[,':='(Geography=NULL, Industry.Code=NULL,N=NULL,Name=NULL,ETF.REGION=NULL)] # delete not needed column
 
 #Indexes <- c("NQG1300EUR", "NQFR8000EUR", "NQEURO2000EUR")
-Indexes <- c("NQG1300EUR")
-End_Date = Sys.Date()-3 # format should be “2015-01-19”
+Indexes <- c("NQG1300EUR")End_Date = Sys.Date()-3 # format should be “2015-01-19”
 Start_Date = End_Date-5 #format should be “2015-01-19”
+URL_Nasdaq <- paste0("https://indexes.nasdaqomx.com/Index/ExportHistory/",
+                      Indexes,
+                      "?startDate=",
+                      Start_Date, 
+                      "T00:00:00.000&endDate=",
+                      End_Date,
+                        "T00:00:00.000&timeOfDay=EOD.xlsx") # URL for all nasdaq indexes
 
-URL_Nasdaq <- paste("https://indexes.nasdaqomx.com/Index/ExportHistory/",
-                    Indexes,
-                    "?startDate=",
-                    Start_Date,
-                    "T00:00:00.000&endDate=",
-                    End_Date,
-                    "T00:00:00.000&timeOfDay=EOD.xlsx") # URL for all nasdaq indexes
-URL_Nasdaq <- gsub(" ", "", URL_Nasdaq) # somehow it creates it with space => we need to remove spaces
-setwd("C:\\Users\\oleksander.anufriyev\\Downloads")
-prl <- "C:\\strawberry\\perl\\bin\\perl.exe"
-installXLSXsupport(perl = 'C:\\strawberry\\perl\\bin\\perl.exe')
-Nasdaq_Data <- read.xls(URL_Nasdaq, sheet = 1, header = TRUE, method= "csv", pwerl = prl) # trasforming to dataframe
-
-con <- xls2csv(URL_Nasdaq,perl = perl)
-
-#Nasdaq_Data <- read.xlsx(textConnection(URL_Nasdaq)) # trasforming to dataframe
+URL_Nasdaq
