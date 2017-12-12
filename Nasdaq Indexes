@@ -1,11 +1,8 @@
-library(data.table)
-library(magrittr)
-library(stringr)
 
-Nasdaq <- read.csv("https://indexes.nasdaqomx.com//docs//AppendixNQGIIndexes.csv") %>% # the list contains more than 16ths indeces  
+Nasdaq <- read.csv("https://indexes.nasdaqomx.com//docs//AppendixNQGIIndexes.csv",stringsAsFactors = FALSE) %>% # the list contains more than 16ths indeces  
           as.data.table() #the data.table::fread function didn't work in the office, hence transformation into data.table is done in 2 steps
 
-Nasdaq<- Nasdaq[Currency=="EUR", # concentrate only on indexes in EUR (Around 2600 indeces)      
+Nasdaq<- Nasdaq[Currency=="EUR", # concentrate only on indexes in EUR (Around 2600 indeces)      
                 list(Price.Return.Symbol,Index.Name, Geography)] # keeping only needed columns
 Nasdaq<- Nasdaq[grep("[0-9]{4}", Price.Return.Symbol)] # leaving only rows, which contain 4-digit code, i.e specific sector
 Nasdaq<- Nasdaq[!grepl("LMEUR", Price.Return.Symbol),] # leaving only rows, which don't have "LM" in the name, i.e. no large, med or small capitalization 
@@ -20,13 +17,13 @@ Nasdaq[,Sector.Code:= as.integer(Sector.Code),]
 ############# getting the countries & industry information ######################
 
 id <- "16R4aKHBrmykKpE59Mrt5gClkykJuwTBJ" # The file is taken in Dec 2017 from http://www.ftserussell.com/files/support-documents/icb-rgs-structural-conversion-map
-ICB <- read.csv(sprintf("https://docs.google.com/uc?id=%s&export=download", id),   sep=";",   stringsAsFactors = FALSE) %>%  
-        as.data.table() #the data.table::fread function didn't work in the office, hence transformation into data.table is done in 2 steps  
+ICB <- read.csv(sprintf("https://docs.google.com/uc?id=%s&export=download", id),   sep=";",   stringsAsFactors = FALSE) %>%  
+        as.data.table() #the data.table::fread function didn't work in the office, hence transformation into data.table is done in 2 steps  
 Industry <- ICB[,.(.N),by=.(Old.ICB.Industry.code, Old.ICB.Industry)]
 
 id_country <- "1EPWUelh1WHwWTlzWAvj-3C_mfdx_dQmZ"
-Countries <- read.csv(sprintf("https://docs.google.com/uc?id=%s&export=download", id_country),   
-                      sep=";",   stringsAsFactors = FALSE,   skip=1) %>%  
+Countries <- read.csv(sprintf("https://docs.google.com/uc?id=%s&export=download", id_country),   
+                      sep=";",   stringsAsFactors = FALSE,   skip=1) %>%  
              as.data.table() #the data.table::fread function didn't work in the office, hence transformation into data.table is done in 2 steps
 
 ############ vlookuping from the google drive tables ############################
@@ -35,7 +32,7 @@ setkey(Industry,Old.ICB.Industry.code)
     Nasdaq<- Nasdaq[Industry,nomatch=0]
 
 setkey(Nasdaq,Geography)
-setkey(Countries,Nasdaq.Country.Code) 
+setkey(Countries,Nasdaq.Country.Code) 
     Nasdaq<- Nasdaq[Countries,nomatch=0]
 
 # Could be done like this:
@@ -44,15 +41,44 @@ setkey(Countries,Nasdaq.Country.Code) 
 
 Nasdaq[,':='(Geography=NULL, Industry.Code=NULL,N=NULL,Name=NULL,ETF.REGION=NULL)] # delete not needed column
 
+
+
+
+
+
+head(Nasdaq)
+unlist(Nasdaq[sample(1:nrow(Nasdaq), 1),1])
+as.character(Nasdaq[1,1])
+sapply(Nasdaq, class)
+
+
+
+
 #Indexes <- c("NQG1300EUR", "NQFR8000EUR", "NQEURO2000EUR")
-Indexes <- c("NQG1300EUR")End_Date = Sys.Date()-3 # format should be “2015-01-19”
+Indexes <- c("NQG1300EUR")
+End_Date = Sys.Date()-3 # format should be “2015-01-19”
 Start_Date = End_Date-5 #format should be “2015-01-19”
 URL_Nasdaq <- paste0("https://indexes.nasdaqomx.com/Index/ExportHistory/",
-                      Indexes,
+                      Nasdaq[sample(1:nrow(Nasdaq), 1),1],
                       "?startDate=",
-                      Start_Date, 
+                      Start_Date, 
                       "T00:00:00.000&endDate=",
                       End_Date,
                         "T00:00:00.000&timeOfDay=EOD.xlsx") # URL for all nasdaq indexes
 
 URL_Nasdaq
+
+------------------------------------------------------
+library(readr)
+library(dplyr)
+tbl = lapply(URL_Nasdaq, read_csv) %>% bind_rows()
+
+
+---------------------------------------------------------
+
+library(data.table)
+DT = do.call(rbind, lapply(files, fread)
+# the same using `rbindlist()`
+DT = rbindlist(lapply(files, fread))
+
+---------------------------------------------------------
