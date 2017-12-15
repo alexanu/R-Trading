@@ -1,4 +1,17 @@
 
+install.packages("xlsx")
+
+library(readr)
+library(dplyr)
+library(data.table)
+library(stringr)
+library(xlsx)
+library(magrittr)
+
+Nasdaq<-NULL
+Nasdaq
+
+
 Nasdaq <- read.csv("https://indexes.nasdaqomx.com//docs//AppendixNQGIIndexes.csv",stringsAsFactors = FALSE) %>% # the list contains more than 16ths indeces  
           as.data.table() #the data.table::fread function didn't work in the office, hence transformation into data.table is done in 2 steps
 
@@ -47,7 +60,7 @@ Nasdaq[,':='(Geography=NULL, Industry.Code=NULL,N=NULL,Name=NULL,ETF.REGION=NULL
 
 
 head(Nasdaq)
-unlist(Nasdaq[sample(1:nrow(Nasdaq), 1),1])
+Nasdaq[sample(1:nrow(Nasdaq), 1),1]
 as.character(Nasdaq[1,1])
 sapply(Nasdaq, class)
 
@@ -57,7 +70,7 @@ sapply(Nasdaq, class)
 #Indexes <- c("NQG1300EUR", "NQFR8000EUR", "NQEURO2000EUR")
 Indexes <- c("NQG1300EUR")
 End_Date = Sys.Date()-3 # format should be “2015-01-19”
-Start_Date = End_Date-5 #format should be “2015-01-19”
+Start_Date = End_Date-7 #format should be “2015-01-19”
 URL_Nasdaq <- paste0("https://indexes.nasdaqomx.com/Index/ExportHistory/",
                       Nasdaq[sample(1:nrow(Nasdaq), 1),1],
                       "?startDate=",
@@ -67,11 +80,72 @@ URL_Nasdaq <- paste0("https://indexes.nasdaqomx.com/Index/ExportHistory/",
                         "T00:00:00.000&timeOfDay=EOD.xlsx") # URL for all nasdaq indexes
 
 URL_Nasdaq
+	
+
 
 ------------------------------------------------------
 library(readr)
 library(dplyr)
 tbl = lapply(URL_Nasdaq, read_csv) %>% bind_rows()
+
+install.packages("XLConnect")
+library(XLConnect)
+
+library()
+search()
+read_excel(URL_Nasdaq, sheet = "History")
+y <- read.xlsx(URL_Nasdaq,sheet = "History")
+fread(URL_Nasdaq)
+
+tmp = tempfile(fileext = ".xlsx")
+read.xlsx(download.file(URL_Nasdaq, destfile = tempfile(fileext = ".xlsx"), mode="wb"),1)
+WorksheetFromFile(file = tmp, sheet = 1)
+
+readWorksheet(URL_Nasdaq, sheet = 1)
+readWorksheet
+
+x <- loadWorkbook(URL_Nasdaq)
+b <- XLConnect::readWorksheet(URL_Nasdaq, sheet=1)
+
+
+install.packages("rio")
+library(rio)
+import(URL_Nasdaq)
+
+
+
+---------------------------------
+
+
+Test_Tickers <- Nasdaq[sample(1:nrow(Nasdaq), 10, replace=T),1] %>% # we select 10 random tickers from our list
+		    unlist() %>% as.character()
+
+
+Path_Work <-"L:\\AGCS\\CFO\\Metadata\\For 2013\\Weight table\\"
+End_Date = Sys.Date()-3 # format should be “2015-01-19”
+Start_Date = End_Date-7 #format should be “2015-01-19”
+
+URL_Nasdaq <- 
+
+
+
+lapply(Test_Tickers, # for all selected tickers we apply the function "download.file"
+	 function(x) download.file(sprintf("https://indexes.nasdaqomx.com/Index/ExportHistory/%s?startDate=%sT00:00:00.000&endDate=%sT00:00:00.000&timeOfDay=EOD.xlsx",
+	   						x,Start_Date, End_Date),
+					  destfile = paste0(Path_Work,x,".csv"),
+					 mode="wb"))
+
+
+lapply(Test_Tickers, # for all selected tickers we apply the function "download.file"
+	 function(x) read.csv(download.file(sprintf("https://indexes.nasdaqomx.com/Index/ExportHistory/%s?startDate=%sT00:00:00.000&endDate=%sT00:00:00.000&timeOfDay=EOD.xlsx",
+	   						x,Start_Date, End_Date),
+					  destfile = paste0(Path_Work,x,".csv"),
+					 mode="wb")))
+read.csv(paste0(Path_Work,Test_Tickers,".csv"))
+paste0(Path_Work,Test_Tickers,".csv")
+
+
+download.file
 
 
 ---------------------------------------------------------
