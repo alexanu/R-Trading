@@ -56,103 +56,52 @@ Nasdaq[,':='(Geography=NULL, Industry.Code=NULL,N=NULL,Name=NULL,ETF.REGION=NULL
 
 
 
-
-
-
-head(Nasdaq)
-Nasdaq[sample(1:nrow(Nasdaq), 1),1]
-as.character(Nasdaq[1,1])
-sapply(Nasdaq, class)
-
-
-
-
-#Indexes <- c("NQG1300EUR", "NQFR8000EUR", "NQEURO2000EUR")
-Indexes <- c("NQG1300EUR")
-End_Date = Sys.Date()-3 # format should be “2015-01-19”
-Start_Date = End_Date-7 #format should be “2015-01-19”
-URL_Nasdaq <- paste0("https://indexes.nasdaqomx.com/Index/ExportHistory/",
-                      Nasdaq[sample(1:nrow(Nasdaq), 1),1],
-                      "?startDate=",
-                      Start_Date, 
-                      "T00:00:00.000&endDate=",
-                      End_Date,
-                        "T00:00:00.000&timeOfDay=EOD.xlsx") # URL for all nasdaq indexes
-
-URL_Nasdaq
-	
-
-
-------------------------------------------------------
-library(readr)
-library(dplyr)
-tbl = lapply(URL_Nasdaq, read_csv) %>% bind_rows()
-
-install.packages("XLConnect")
-library(XLConnect)
-
-library()
-search()
-read_excel(URL_Nasdaq, sheet = "History")
-y <- read.xlsx(URL_Nasdaq,sheet = "History")
-fread(URL_Nasdaq)
-
-tmp = tempfile(fileext = ".xlsx")
-read.xlsx(download.file(URL_Nasdaq, destfile = tempfile(fileext = ".xlsx"), mode="wb"),1)
-WorksheetFromFile(file = tmp, sheet = 1)
-
-readWorksheet(URL_Nasdaq, sheet = 1)
-readWorksheet
-
-x <- loadWorkbook(URL_Nasdaq)
-b <- XLConnect::readWorksheet(URL_Nasdaq, sheet=1)
-
-
-install.packages("rio")
-library(rio)
-import(URL_Nasdaq)
-
-
-
----------------------------------
-
-
 Test_Tickers <- Nasdaq[sample(1:nrow(Nasdaq), 10, replace=T),1] %>% # we select 10 random tickers from our list
 		    unlist() %>% as.character()
-
-
 Path_Work <-"L:\\AGCS\\CFO\\Metadata\\For 2013\\Weight table\\"
+
+Path_Work_Short <-"L:/AGCS/CFO/Metadata/For 2013/Weight table/"
+
+
 End_Date = Sys.Date()-3 # format should be “2015-01-19”
 Start_Date = End_Date-7 #format should be “2015-01-19”
 
-URL_Nasdaq <- 
-
+as.integer(End_Date-Start_Date)
 
 
 lapply(Test_Tickers, # for all selected tickers we apply the function "download.file"
 	 function(x) download.file(sprintf("https://indexes.nasdaqomx.com/Index/ExportHistory/%s?startDate=%sT00:00:00.000&endDate=%sT00:00:00.000&timeOfDay=EOD.xlsx",
 	   						x,Start_Date, End_Date),
-					  destfile = paste0(Path_Work,x,".csv"),
+					  destfile = paste0(Path_Work,x,".xlsx"),
 					 mode="wb"))
 
 
-lapply(Test_Tickers, # for all selected tickers we apply the function "download.file"
-	 function(x) read.csv(download.file(sprintf("https://indexes.nasdaqomx.com/Index/ExportHistory/%s?startDate=%sT00:00:00.000&endDate=%sT00:00:00.000&timeOfDay=EOD.xlsx",
-	   						x,Start_Date, End_Date),
-					  destfile = paste0(Path_Work,x,".csv"),
-					 mode="wb")))
-read.csv(paste0(Path_Work,Test_Tickers,".csv"))
-paste0(Path_Work,Test_Tickers,".csv")
+----------------------------------------------------------------------------------------------------
+
+file_list <- list.files(path=Path_Work_Short, pattern="*.xlsx") # create list of all .csv files in folder
+
+data <- 
+  do.call("rbind", 
+          lapply(file_list, 
+                 function(x) cbind(
+						read.xlsx(paste0(Path_Work_Short, x),
+                 				    	    endRow=as.integer(End_Date-Start_Date)-1,
+  						          sheetIndex=1,
+						          colIndex = c(1, 2)),
+					     x)
+                 )
+          )
 
 
-download.file
 
 
----------------------------------------------------------
+
+--------------------------------------------------------------------------------------------------------------
+
 
 library(data.table)
 DT = do.call(rbind, lapply(files, fread)
 # the same using `rbindlist()`
-DT = rbindlist(lapply(files, fread))
+DT = rbindlist(lapply(paste0(Path_Work_Short,Test_Tickers,".csv"), fread))
 
 ---------------------------------------------------------
