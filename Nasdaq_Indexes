@@ -4,15 +4,16 @@ library(data.table)
 library(stringr)
 library(xlsx)
 library(magrittr)
+library(quantmod)
 
-Nasdaq <- read.csv("https://indexes.nasdaqomx.com//docs//AppendixNQGIIndexes.csv", # the list contains more than 16ths indeces† 
+Nasdaq <- read.csv("https://indexes.nasdaqomx.com//docs//AppendixNQGIIndexes.csv", # the list contains more than 16ths indeces  
 			stringsAsFactors = FALSE) %>% 
-††††††††† as.data.table() # the data.table::fread function didn't work in the office, ...
+          as.data.table() # the data.table::fread function didn't work in the office, ...
 				  # hence transformation into data.table is done in 2 steps
 
 ############ cleaning the list of indexes #####################################################################
 
-Nasdaq<- Nasdaq[Currency=="EUR", # concentrate only on indexes in EUR (Around 2600 indeces)††††† 
+Nasdaq<- Nasdaq[Currency=="EUR", # concentrate only on indexes in EUR (Around 2600 indeces)      
 		    list(Price.Return.Symbol,Index.Name, Geography)] # keeping only needed columns
 Nasdaq<- Nasdaq[grep("[0-9]{4}", Price.Return.Symbol)] # leaving only rows, which contain 4-digit code, i.e specific sector
 Nasdaq<-Nasdaq[!grepl("LMEUR", Price.Return.Symbol),] # leaving only rows, which don't have "LM" in the name, i.e. no large, med or small capitalization 
@@ -30,32 +31,32 @@ Nasdaq[,Sector.Code:=as.integer(Sector.Code),]
 
 id <- "16R4aKHBrmykKpE59Mrt5gClkykJuwTBJ" 
 ICB <- read.csv(sprintf("https://docs.google.com/uc?id=%s&export=download",
-††††††††††††††††††††††† †id),†† 
-††††††††††† ††† sep=";",†† 
-††††††††††† ††† stringsAsFactors = FALSE) %>%† 
-† †††††as.data.table()  # the data.table::fread function didn't work in the office, ...
-			 	# ... hence transformation into data.table is done in 2 steps† 
+                         id),   
+                sep=";",   
+                stringsAsFactors = FALSE) %>%  
+       as.data.table()  # the data.table::fread function didn't work in the office, ...
+			 	# ... hence transformation into data.table is done in 2 steps  
 
 Industry <- ICB[,.(.N),by=.(Old.ICB.Industry.code, Old.ICB.Industry)]
 
 id_country <- "1EPWUelh1WHwWTlzWAvj-3C_mfdx_dQmZ"
 Countries <- read.csv(sprintf("https://docs.google.com/uc?id=%s&export=download",
-††††††††††††††††††††††††††††† id_country),†† 
-††††††††††††††††††††† sep=";",†† 
-††††††††††††††††† ††† stringsAsFactors = FALSE,†† 
-††††††††††††††††† ††† skip=1) %>%† 
-†††††††††† ††as.data.table() # the data.table::fread function didn't work in the office, ...
+                              id_country),   
+                      sep=";",   
+                      stringsAsFactors = FALSE,   
+                      skip=1) %>%  
+             as.data.table() # the data.table::fread function didn't work in the office, ...
 				     # ... hence transformation into data.table is done in 2 steps
 
 ############ vlookuping from the google drive tables #########################################################
 
 setkey(Nasdaq,Sector.Code)
 setkey(Industry,Old.ICB.Industry.code)
-††† Nasdaq<- Nasdaq[Industry,nomatch=0]
+    Nasdaq<- Nasdaq[Industry,nomatch=0]
 
 setkey(Nasdaq,Geography)
 setkey(Countries,Nasdaq.Country.Code)
-††† Nasdaq<- Nasdaq[Countries,nomatch=0]
+    Nasdaq<- Nasdaq[Countries,nomatch=0]
 
 # Could be done like this:
 # Nasdaq[Geography %in% Countries$Nasdaq.Country.Code,]
@@ -73,12 +74,12 @@ Test_Tickers <- Nasdaq[sample(1:nrow(Nasdaq), 10, replace=T),1] %>% # we select 
 		    unlist() %>% as.character()
 
 
-End_Date = Sys.Date()-3 # format should be ì2015-01-19î # ther URL contains end and start dates
-Start_Date = End_Date-60 #format should be ì2015-01-19î # ther URL contains end and start dates
+End_Date = Sys.Date()-3 # format should be ‚Äú2015-01-19‚Äù # ther URL contains end and start dates
+Start_Date = End_Date-60 #format should be ‚Äú2015-01-19‚Äù # ther URL contains end and start dates
 
 Path_Work <-"L:/AGCS/CFO/Metadata/For 2013/Weight table/Nasdaq/"
 
-unlink(paste0(Path_Work,"/*"))
+unlink(paste0(Path_Work,"/*")) # deleting all the previous files
 
 lapply(Test_Tickers, # for all selected tickers we apply the function "download.file"
 	function(x) download.file( # we need this function because fread and other functions didn't work in the office
@@ -92,45 +93,38 @@ lapply(Test_Tickers, # for all selected tickers we apply the function "download.
 file_list <- list.files(path=Path_Work, pattern="*.xlsx") # create list of all .xlsx files in folder
 
 data <-  do.call("rbind", # like this we stack the data from all downloaded files into 1 data.frame (1 block under another)
-	 ††††††††† lapply(file_list, # we avoiding loops like this
-	 †††††††††††††††† function(x) cbind( # we need this function in order to add the new column 
-††††††††††††††††††††††††††††††††††††††† †† read.xlsx(paste0(Path_Work, x), #fread didn'T work for these files
-†††††††† †††††††††††††††††††††††††††††† †††††††††††††endRow=as.integer(End_Date-Start_Date)-1, # the file is not clean, hence fread doesn't work
-††††††††††††††††††††††††††††††††††††††††††††††† †††††sheetIndex=1, # the fomula requires to specify the sheet
+	           lapply(file_list, # we avoiding loops like this
+	                  function(x) cbind( # we need this function in order to add the new column 
+                                           read.xlsx(paste0(Path_Work, x), #fread didn'T work for these files
+                                                     endRow=as.integer(End_Date-Start_Date)-1, # the file is not clean, hence fread doesn't work
+                                                     sheetIndex=1, # the fomula requires to specify the sheet
 								     colIndex = c(1, 2)), # we need only 2 columns
 							Price.Return.Symbol=str_sub(x,1,-6)) # this the new column we are adding: ...
 							# it is the name of the index (we cut away the ".xlsx" of the file names)
 				)
-	††††††††† ) %>% as.data.table # transform to data.table
+	          ) %>% as.data.table # transform to data.table
 
-library(quantmod)
-data
-class(data)
-write.csv(data,"Data.csv")
-data<-NULL
-class(return_duration)
-return_duration <- c(1,5,22,130)
-
-rbindlist(
-	    lapply(return_duration, 
-		     function(x) cbind(Date=data[,Trade.Date],
-					     Price.Return.Symbol=data[,Price.Return.Symbol],
-					     Index.Value=data[,Index.Value],
-					     as.data.table(
-								 ROC(data[,Index.Value],
-								     x)
-								 ),
-						Return_dur=paste0(x,"-days_ret"))
-			)
-		)
+return_duration <- c(1,5,22,130) # different durations of returns in days
+returns_data <- rbindlist( # puts every block one under another
+			        lapply(return_duration, # to every return duration applies the formuls from below... 
+	   			  	   function(x) cbind( # this function creates several columns...
+								   Date=data[,Trade.Date],
+							     	   Price.Return.Symbol=data[,Price.Return.Symbol],
+   							         Index.Value=data[,Index.Value],
+					     		         as.data.table(
+										 	ROC(data[,Index.Value], # adding the return column...
+										     	    x) #... of different duration
+								   			),
+								   Return_dur=paste0(x,"-days_ret")) # adding a column of type of return
+					    )
+				  )
 
 
-data[,max(Trade.Date, na.rm=TRUE),by=Price.Return.Symbol]
 
+setkey(returns_data,Price.Return.Symbol)
+setkey(Nasdaq,Price.Return.Symbol)
+final_data <- merge(Nasdaq,returns_data, all.y=TRUE) # adding index information to the return data
 
---------------------------------------------------------------------------------------------------------------
-DT = do.call(rbind, lapply(files, fread)
-# the same using `rbindlist()`
-DT = rbindlist(lapply(paste0(Path_Work_Short,Test_Tickers,".csv"), fread))
----------------------------------------------------------
+report_date <- data[,max(Trade.Date, na.rm=TRUE),]
+
 
