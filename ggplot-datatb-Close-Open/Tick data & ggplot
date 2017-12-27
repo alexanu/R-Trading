@@ -10,16 +10,19 @@ library(ggplot2)
 Path <- "L:\\AGCS\\CFO\\Metadata\\For 2013\\Weight table\\tick_data" # The directory where all the tick data files are stored
 tickers <- gsub(".txt", "", # I need to get rid of file extensions
 			list.files(path = Path)) # ...give a list of all the files in the directory
-Symbol_Path <- paste0(Path ,"\\",tickers,".txt")
-datalist = lapply(Symbol_Path, #creates list: reads all  the txt file from the folder and every dataframe in separate list componentassuming tab separated values with a header   
-			FUN=fread, # fread from the package "DATA.TABLE" does it much faster than read.table (standard functionality). The comparison of time could be done using function system.time(x), where x is our expression
-			stringsAsFactors=FALSE,
-			dec=",") # OLHC data has comma as a decimal separator   
 
-datalist <- mapply(cbind, datalist , "Ticker"=tickers, SIMPLIFY=F) # add new column to every dataframe in the list and fills it with the symbol
-datatb = rbindlist(datalist) # #merges down all the data tables. The function is from data.table package. Another way is to do like this: "do.call("rbind", datalist)". The alternative way could be slower
+datatb <- rbindlist( # puts every block one under another
+			        lapply(paste0(Path ,"\\",tickers,".txt"), # to every return duration applies the formuls from below... 
+	   			  	   function(x) cbind( # this function creates several columns...
+								   fread(x),
+							     	   "Ticker"=tickers)
+				  ))
+
+
+
 datatb[,Date:=paste(format(as.Date(datatb[,Date],format="%d.%m.%Y"),"%Y-%m-%d"),datatb[,Time],sep=" ")] # the date and time are in 2 columns: we need to merge them
 datatb[,Date:=fastPOSIXct(datatb[,Date],"GMT")]# This is much faster than to do it with "as.POSIXct" function from standart functionality
+						# however it requires the format like this "%Y-%m-%d"
 datatb[,':='(Time=NULL, V8=NULL)] # delete not needed column
 datatb[,Volume:=as.numeric(datatb[,Volume])] # we need this in order to work with Volumes as integer is not enough
 
