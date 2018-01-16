@@ -5,11 +5,20 @@ library(stringr)
 library(xlsx)
 library(magrittr)
 library(quantmod)
+library(devtools)
+install_github("gregce/ipify") # this package is from GitHub
+library(ipify)
 
-Nasdaq <- read.csv("https://indexes.nasdaqomx.com//docs//AppendixNQGIIndexes.csv", # the list contains more than 16ths indeces  
-			stringsAsFactors = FALSE) %>% 
-          as.data.table() # the data.table::fread function didn't work in the office, ...
-				  # hence transformation into data.table is done in 2 steps
+
+if_else(# the function is from dplyr. There is also base::ifelse()
+        ipify::get_ip()=="77.189.111.53", # this is my home IP
+        Nasdaq<- fread( # the fread is faster, however it doesn't work in the office because of firewall
+                        "https://indexes.nasdaqomx.com//docs//AppendixNQGIIndexes.csv",# the list contains more than 16ths indeces  
+                        showProgress = FALSE), # hides messages
+        Nasdaq <- read.csv("https://indexes.nasdaqomx.com//docs//AppendixNQGIIndexes.csv",  
+                           stringsAsFactors = FALSE) %>% 
+                  as.data.table()) # the transformation into data.table 
+        
 
 ############ cleaning the list of indexes #####################################################################
 
