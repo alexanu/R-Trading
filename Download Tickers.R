@@ -5,14 +5,19 @@ urls <- c("http://www.nasdaq.com/screening/companies-by-name.aspx?letter=0&excha
           "http://www.nasdaq.com/screening/companies-by-industry.aspx?exchange=NASDAQ&render=download",
           "http://www.nasdaq.com/screening/companies-by-name.aspx?letter=0&exchange=amex&render=download")
 BORSE_URL <- data.frame(BORSE, urls, stringsAsFactors=F)
+
 #---------------------------------------------------------------------------------------------------------------------------
 
-# Then we go through every of urls and receive a combine list of all tickers on 3 exchanges
+read.csv(urls[1])
+fread(urls[1])
+urls[1]
 
+# Then we go through every of urls and receive a combine list of all tickers on 3 exchanges
+install.packages("data.table")
 library(data.table)
 datalist<-NULL # clear datalist (just in case)
-datalist = lapply(BORSE_URL$urls, #creates list: reads all  the txt file from the folder and every dataframe in separate list component assuming tab separated values with a header   
-                  FUN=fread, # fread from the package "DATA.TABLE" does it much faster than read.table (standard functionality). The comparison of time could be done using function system.time(x), where x is our expression
+datalist = lapply(BORSE_URL$urls, #creates list
+                  FUN=fread, # fread from the package "DATA.TABLE" does it much faster than read.table 
                   header=TRUE)
 datalist <- mapply(cbind, datalist , "Borse"=BORSE_URL$BORSE , SIMPLIFY=F) # add new column to every data.table in the list and fills it with the symbol
 datatb = rbindlist(datalist, # merging rows of 3 lists in one

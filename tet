@@ -1,0 +1,67 @@
+"","X..i..","Chapter"
+"1","A matrix is a very useful mathematical construct. Matrices provide a mechanism for easily manipulating large collections of data. Matrix Mathematics is a vast topic and there exist numerous papers and publications that talk about all the possible uses of matrices. Suffice it to say that this class is only going to use a small subset of these theorems. In R, a matrix can be created in the following manner:","en/Lecture 3.htm"
+"2","Matrices are created column first. If you want to create the rows first, make sure to use the byrow = TRUE attribute.","en/Lecture 3.htm"
+"3","as opposed to:","en/Lecture 3.htm"
+"4","Since a matrix is an object within R, one can change the name attribute of the matrix. Names are assigned to the rows and to the columns of a matrix. The following three snippets of code accomplish this.","en/Lecture 3.htm"
+"5","The following basic operations can be performed on matrices:","en/Lecture 3.htm"
+"6","Provided that the number of rows and columns are the same for the matrices being added, once can do the following:","en/Lecture 3.htm"
+"7","When multiplying together two matrices, make sure that the inner dimensions match. For example, it is fine to multiply a 2×3 with a 3×4 matrix. It is not ok to multiply together a 2×3 with a 4×4 matrix.","en/Lecture 3.htm"
+"8","Matrix division is not defined. Rather, one can think of matrix division as multiplication by a matrix times the inverse of the second matrix. Remember also that, AB is not equal to BA in matrix land. Another operation that can be defined with matrices is that of exponentiation. This is a more involved topic and will not be covered in this class.","en/Lecture 3.htm"
+"9","The determinant of a matrix A can be written as det(A) or |A|. The inverse of a matrix A can be written as inv(A) or A^-1.
+The determinant and the inverse of a matrix in R can be computed with the following functions: det() and solve().","en/Lecture 3.htm"
+"10","R code can be composed entirely within a simple text file. For more advanced editing capability, check out the following links:","en/Lecture 3.htm"
+"11","As mentioned in Class 1, there are 3 ways to get code into R.
+1. Write code directly into the R console
+2. Write code into a text file and copy/paste it into the R console
+3. Write code into a text file, save the text file as a .R file and then invoke the source() command to load the contents of that file into memory.","en/Lecture 3.htm"
+"12","One of the benefits of the R environment is the abundance of open-source code in the form of external libraries/packages. The vast majority of these add-ons can be found here:http://cran.r-project.org. Libraries are typically organized by subject matter. For a useful breakdown, click on Packages -> CRAN Task Views.","en/Lecture 3.htm"
+"13","There are two ways to install packages in R. The first way is via the GUI, and the second way is by issuing the appropriate command in the console.","en/Lecture 3.htm"
+"14","Package Loading in R","en/Lecture 3.htm"
+"15","There is a difference between installing a package and loading a package. The installation procedure will expose the new library/package to the R environment. This task only needs to occur once. In order to use the functions and classes within the newly installed package, the library() or require() commands need to be specified. This needs to occur every time the R workspace is re-loaded. The following command loads the newly installed package into memory.","en/Lecture 3.htm"
+"16","Here, we have made the assumption that the xts package was installed. If all goes well, nothing will appear on the screen. If the package has not been previously installed, R will issue an error message.","en/Lecture 3.htm"
+"17","To install a package from the command prompt, simply issue the following command.","en/Lecture 3.htm"
+"18","Like most functions, the install.packages() function takes multiple arguments. Various repositories and alternate file locations can be specified.","en/Lecture 3.htm"
+"19","This class will briefly cover 2 packages. These are xts and quantmod. The xts package is a timeseries package and comes in very handy when dealing with ordered observations. The quantmod package allows for some extended graphing functionality and works well with xts.","en/Lecture 3.htm"
+"20","Over the years, various practitioners and academics have written functions in R that deal with financial timeseries data. Given that the bulk of xts is written in C, it is ideal for fast lookups and indexing.
+An xts timeseries obect is composed of an index and coredata. The index contains the time information and the coredata contains the raw data. The following examples illustrate the creation and manipulation of xts objects. The first example is taken directly from the ?xts help file.","en/Lecture 3.htm"
+"21","The first line of the previous example invokes the data() command. Typically, external packages include both functions and supporting data. The included data is meant to assist the user in understanding the functionality of the package. The as.xts() command casts the matrix into an xts object. In this example, the row-names of the matrix are converted into an index object and the rest of the data into the coredata. The :: operator is used to extract specific data from the xts object.
+The next example extracts the index and the coredata from myXts.","en/Lecture 3.htm"
+"22","The timeInfo object should now only contain the time-information. The command class(timeInfo) reveals that we are dealing with a POSIXct object. It is good practice to convert any timestamps into POSIXct from now on.
+Before we move on to more intricate timeseries examples, we need to address the conversion of strings into POSIXct objects. Typically, timestamps are formatted as strings initially when read in from Excel or other databases. Before we can convert the strings into POSIXct, we need to let R know what format we are dealing with. The next example illustrates this.","en/Lecture 3.htm"
+"23","After converting a regular timeseries into an xts object, it becomes fairly easy to perform sub-setting, indexing and merging operations.","en/Lecture 3.htm"
+"24","After installing and loading quantmod, we can use the following functions to visualize financial timeseries data. The following link provides some useful information about quantmod. http://www.quantmod.com. The examples that follow are taken directly from the quantmod website.","en/Lecture 3.htm"
+"25","","en/tick.htm"
+"26","            ► latest
+    version online
+","en/min.htm"
+"27","A matrix is a very useful mathematical construct. Matrices provide a mechanism for easily manipulating large collections of data. Matrix Mathematics is a vast topic and there exist numerous papers and publications that talk about all the possible uses of matrices. Suffice it to say that this class is only going to use a small subset of these theorems. In R, a matrix can be created in the following manner:","en/Lecture 3.htm"
+"28","Matrices are created column first. If you want to create the rows first, make sure to use the byrow = TRUE attribute.","en/Lecture 3.htm"
+"29","as opposed to:","en/Lecture 3.htm"
+"30","Since a matrix is an object within R, one can change the name attribute of the matrix. Names are assigned to the rows and to the columns of a matrix. The following three snippets of code accomplish this.","en/Lecture 3.htm"
+"31","The following basic operations can be performed on matrices:","en/Lecture 3.htm"
+"32","Provided that the number of rows and columns are the same for the matrices being added, once can do the following:","en/Lecture 3.htm"
+"33","When multiplying together two matrices, make sure that the inner dimensions match. For example, it is fine to multiply a 2×3 with a 3×4 matrix. It is not ok to multiply together a 2×3 with a 4×4 matrix.","en/Lecture 3.htm"
+"34","Matrix division is not defined. Rather, one can think of matrix division as multiplication by a matrix times the inverse of the second matrix. Remember also that, AB is not equal to BA in matrix land. Another operation that can be defined with matrices is that of exponentiation. This is a more involved topic and will not be covered in this class.","en/Lecture 3.htm"
+"35","The determinant of a matrix A can be written as det(A) or |A|. The inverse of a matrix A can be written as inv(A) or A^-1.
+The determinant and the inverse of a matrix in R can be computed with the following functions: det() and solve().","en/Lecture 3.htm"
+"36","R code can be composed entirely within a simple text file. For more advanced editing capability, check out the following links:","en/Lecture 3.htm"
+"37","As mentioned in Class 1, there are 3 ways to get code into R.
+1. Write code directly into the R console
+2. Write code into a text file and copy/paste it into the R console
+3. Write code into a text file, save the text file as a .R file and then invoke the source() command to load the contents of that file into memory.","en/Lecture 3.htm"
+"38","One of the benefits of the R environment is the abundance of open-source code in the form of external libraries/packages. The vast majority of these add-ons can be found here:http://cran.r-project.org. Libraries are typically organized by subject matter. For a useful breakdown, click on Packages -> CRAN Task Views.","en/Lecture 3.htm"
+"39","There are two ways to install packages in R. The first way is via the GUI, and the second way is by issuing the appropriate command in the console.","en/Lecture 3.htm"
+"40","Package Loading in R","en/Lecture 3.htm"
+"41","There is a difference between installing a package and loading a package. The installation procedure will expose the new library/package to the R environment. This task only needs to occur once. In order to use the functions and classes within the newly installed package, the library() or require() commands need to be specified. This needs to occur every time the R workspace is re-loaded. The following command loads the newly installed package into memory.","en/Lecture 3.htm"
+"42","Here, we have made the assumption that the xts package was installed. If all goes well, nothing will appear on the screen. If the package has not been previously installed, R will issue an error message.","en/Lecture 3.htm"
+"43","To install a package from the command prompt, simply issue the following command.","en/Lecture 3.htm"
+"44","Like most functions, the install.packages() function takes multiple arguments. Various repositories and alternate file locations can be specified.","en/Lecture 3.htm"
+"45","This class will briefly cover 2 packages. These are xts and quantmod. The xts package is a timeseries package and comes in very handy when dealing with ordered observations. The quantmod package allows for some extended graphing functionality and works well with xts.","en/Lecture 3.htm"
+"46","Over the years, various practitioners and academics have written functions in R that deal with financial timeseries data. Given that the bulk of xts is written in C, it is ideal for fast lookups and indexing.
+An xts timeseries obect is composed of an index and coredata. The index contains the time information and the coredata contains the raw data. The following examples illustrate the creation and manipulation of xts objects. The first example is taken directly from the ?xts help file.","en/Lecture 3.htm"
+"47","The first line of the previous example invokes the data() command. Typically, external packages include both functions and supporting data. The included data is meant to assist the user in understanding the functionality of the package. The as.xts() command casts the matrix into an xts object. In this example, the row-names of the matrix are converted into an index object and the rest of the data into the coredata. The :: operator is used to extract specific data from the xts object.
+The next example extracts the index and the coredata from myXts.","en/Lecture 3.htm"
+"48","The timeInfo object should now only contain the time-information. The command class(timeInfo) reveals that we are dealing with a POSIXct object. It is good practice to convert any timestamps into POSIXct from now on.
+Before we move on to more intricate timeseries examples, we need to address the conversion of strings into POSIXct objects. Typically, timestamps are formatted as strings initially when read in from Excel or other databases. Before we can convert the strings into POSIXct, we need to let R know what format we are dealing with. The next example illustrates this.","en/Lecture 3.htm"
+"49","After converting a regular timeseries into an xts object, it becomes fairly easy to perform sub-setting, indexing and merging operations.","en/Lecture 3.htm"
+"50","After installing and loading quantmod, we can use the following functions to visualize financial timeseries data. The following link provides some useful information about quantmod. http://www.quantmod.com. The examples that follow are taken directly from the quantmod website.","en/Lecture 3.htm"
