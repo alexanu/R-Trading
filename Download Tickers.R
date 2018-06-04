@@ -6,16 +6,16 @@ urls <- c("http://www.nasdaq.com/screening/companies-by-name.aspx?letter=0&excha
           "http://www.nasdaq.com/screening/companies-by-name.aspx?letter=0&exchange=amex&render=download")
 BORSE_URL <- data.frame(BORSE, urls, stringsAsFactors=F)
 
-#---------------------------------------------------------------------------------------------------------------------------
-
-read.csv(urls[1])
-fread(urls[1])
-urls[1]
+summary(datatb)
 
 # Then we go through every of urls and receive a combine list of all tickers on 3 exchanges
 install.packages("data.table")
+
+library(stringr)
+library(dplyr)
 library(data.table)
 datalist<-NULL # clear datalist (just in case)
+datatb<-NULL
 datalist = lapply(BORSE_URL$urls, #creates list
                   FUN=fread, # fread from the package "DATA.TABLE" does it much faster than read.table 
                   header=TRUE)
@@ -24,9 +24,22 @@ datatb = rbindlist(datalist, # merging rows of 3 lists in one
 		   fill=TRUE) # we need "Fill=True" as there are some columns which appear only in 1 database
 datatb[Borse=="NASDAQ",industry:=Industry] # there are 2 industry columns, named differently. We need to merge them.
 setnames(datatb, make.names(colnames(datatb))) # this remove spaces from column names
-datatb[,c("LastSale","Summary.Quote","V9","ADR.TSO","Industry","V10"):=NULL] # we should delete not-needed columns
-# The tickers also contain such form as "SCE^D" or "ADM.T". Yahoo doesn't know this
+
+datatb<- datatb[,list(Symbol,Name,Sector,industry, Summary.Quote,Borse)] # keeping only needed columns
+datatb[,Summary.Quote:=str_replace(Summary.Quote,"https://www.nasdaq.com/symbol/","")] # xxx
+
+
+datatb[,.(.N),by=.(Summary.Quote, Symbol)]
+max(datatb[,.(.N),by=.(Summary.Quote, Symbol)]$N)
+
+datatb[,.(.N),by=.(Summary.Quote, industry)]
+max(datatb[,.(.N),by=.(Summary.Quote)]$N)
+
+
 #----------------------------------------------------------------------------------------------------------
+
+
+View(datatb)
 
 # For now I don't reall see the need to download yahoo quotes. It is just an exercise.
 # Now we could start the downloading of files with quotes to the hard drive
