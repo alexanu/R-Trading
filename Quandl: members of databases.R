@@ -7,6 +7,7 @@ install.packages("googlesheets") # many other useful pkges are installed as well
 install.packages("data.table")
 
 library(data.table)
+library(dplyr) # use function "View"
 library(googlesheets)
 library(magrittr) # googlesheets pkg uses pipes
 gs_ls() # this command delivers the URL, which you should enter into the browser and allow. You will get the key, which you need to paste in R.
@@ -14,15 +15,7 @@ gs_ls() # this command delivers the URL, which you should enter into the browser
 Quandl_DB <- gs_title("Quandl_DB") %>% # If you plan to consume data from a sheet or edit it, you must first register it
                 gs_read(ws=1,range = cell_rows(4:200) ) %>%
                   as.data.table()  
-                  
 
-################################# AT WORK ###################################################################
-
-Path <- "L:\\AGCS\\CFO\\Metadata\\For 2013\\Weight table\\QUANDL" # The directory where all the tick data files are stored
-File <- "Quandl_source.csv"
-Quandl_DB <- fread(paste0(Path, "\\",File))
-
-##############################################################################################################
 
 setnames(Quandl_DB, make.names(colnames(Quandl_DB))) # this remove spaces from column names
 Quandl_DB <- Quandl_DB[Status=="1"& Max.pages<100, # restrcting only to needed sources
