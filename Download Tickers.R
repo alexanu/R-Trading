@@ -8,8 +8,7 @@ BORSE_URL <- data.frame(BORSE, urls, stringsAsFactors=F)
 
 #---------------------------------------------------------------------------------------------------------------------------
 
-read.csv(urls[1])
-fread(urls[1])
+Y <- read.csv("http://www.nasdaq.com/screening/companies-by-name.aspx?letter=0&exchange=amex&render=download")
 urls[1]
 
 # Then we go through every of urls and receive a combine list of all tickers on 3 exchanges
