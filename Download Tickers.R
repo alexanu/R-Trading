@@ -6,7 +6,14 @@ urls <- c("http://www.nasdaq.com/screening/companies-by-name.aspx?letter=0&excha
           "http://www.nasdaq.com/screening/companies-by-name.aspx?letter=0&exchange=amex&render=download")
 BORSE_URL <- data.frame(BORSE, urls, stringsAsFactors=F)
 
+<<<<<<< HEAD
 summary(datatb)
+=======
+#---------------------------------------------------------------------------------------------------------------------------
+
+Y <- read.csv("http://www.nasdaq.com/screening/companies-by-name.aspx?letter=0&exchange=amex&render=download")
+urls[1]
+>>>>>>> b3fca39db039cfd058202e73a71732f7e4933601
 
 # Then we go through every of urls and receive a combine list of all tickers on 3 exchanges
 install.packages("data.table")
