@@ -1,62 +1,26 @@
-For testing the speed of data.table we need to create 3 identical databases:
-1) A dataframe
-2) A Datatable without key
-3) A Datatable with key
-
-################################# Creating a data frame ##################################################
+# To install and load pkges quickly you could use "easypackages", "install.load", "xfun::pkg_attach2()" or "librarian"
+install.packages("librarian")
+librarian::shelf(readr, feather, data.table,readit,ggplot2,magrittr, 
+		     fasttime, lubridate, anytime)
 
 
-Path <- "L:\\AGCS\\CFO\\Metadata\\For 2013\\Weight table\\tick_data" # The directory where all the tick data files are stored
-tickers <- gsub(".txt", "", # I need to get rid of file extensions
-                                    list.files(path = Path)) # ...give a list of all the files in the directory
-Symbol_Path <- paste0(Path ,"\\",tickers,".txt")
-datalist = lapply(Symbol_Path, #creates list: reads all  the txt file from the folder and every dataframe in separate list componentassuming tab separated values with a header    
-                  FUN=read.table, # fread from the package "DATA.TABLE" does it much faster than read.table (standard functionality). The comparison of time could be done using function system.time(x), where x is our expression
-                  stringsAsFactors=FALSE,
-                  header=TRUE,
-                  dec=",") # OLHC data has comma as a decimal separator
-datalist <- mapply(cbind, datalist , "Ticker"=tickers, SIMPLIFY=F) # add new column to every dataframe in the list and fills it with the symbol
-datafr = do.call("rbind", datalist) #merges down all the dataframes
+Path <- "\\\\WWG00M.ROOTDOM.NET/DFS/HOME/G107980/ICM/Desktop/1/Programming/R/tick_data"
+tickers <- list.files(path = Path) %>% # give a list of all the files in the directory
+	     gsub(".txt", "",.)%>%  # I need to get rid of file extensions      
+		as.list()                      
 
-datafr[,"Date"]<-paste(datafr[,"Date"],datafr[,"Time"],sep=" ") # the date and time are in 2 columns: we need to merge them
-datafr <- datafr[,-2]
-datafr[,"Date"]<-as.POSIXct(strptime(datafr[,"Date"],"%d.%m.%Y %H:%M")) # 
-datafr[,"Volume"]<-as.numeric(datafr[,"Volume"]) # # we need this in order to work with Volumes as integer is not enough
+datable <- lapply(tickers, function(i) {paste0(Path ,"/",i,".txt") %>% 
+				 	fread(dec=',',colClasses=c("numeric")) %>% 
+					.[, `:=`(Ticker=i,
+						   Date= paste(Date,Time,sep=" ")%>% lubridate::parse_date_time2("dmY HM"),
+						   Time=NULL)]}) %>%
+		rbindlist()
+
+# anytime::anytime() doesn't recognize 1 digit hour (e.g. 9)
+# fasttime::fastPOSIXct() doesn't work as it could be used only for 1 format
 
 
-################################### Creating a data table w/o key ###########################################
-
-
-
-install.packages("data.table")# we need the function "fread" from this package.
-library(data.table)
-install.packages("fasttime") # we need the function "fastPOSIXct" from this package.
-library(fasttime)
-
-
-Path <- "L:\\AGCS\\CFO\\Metadata\\For 2013\\Weight table\\tick_data" # The directory where all the tick data files are stored
-tickers <- gsub(".txt", "", # I need to get rid of file extensions
-                                    list.files(path = Path)) # ...give a list of all the files in the directory
-Symbol_Path <- paste0(Path ,"\\",tickers,".txt")
-datalist = lapply(Symbol_Path, #creates list: reads all  the txt file from the folder and every dataframe in separate list componentassuming tab separated values with a header    
-                                                FUN=fread, # fread from the package "DATA.TABLE" does it much faster than read.table (standard functionality). The comparison of time could be done using function system.time(x), where x is our expression
-                                                stringsAsFactors=FALSE,
-                                                dec=",") # OLHC data has comma as a decimal separator    
-datalist <- mapply(cbind, datalist , "Ticker"=tickers, SIMPLIFY=F) # add new column to every dataframe in the list and fills it with the symbol
-datatb = rbindlist(datalist) # #merges down all the data tables. The function is from data.table package. Another way is to do like this: "do.call("rbind", datalist)". The alternative way could be slower
-datatb[,Date:=paste(datatb[,Date],datatb[,Time],sep=" ")] # the date and time are in 2 columns: we need to merge them
-datatb[,Date:=fastPOSIXct(datatb[,Date])]# This is much faster than to do it with "as.POSIXct" function from standart functionality
-datatb[,Time:=NULL] # delete not needed column 
-datatb[,Volume:=as.numeric(datatb[,Volume])] # we need this in order to work with Volumes as integer is not enough
-
-################################### Creating a data table with key ###########################################
-
-datatbKEY = do.call("rbind", datalist) #merges down all the dataframes
-
-datatbKEY[,Date:=paste(datatbKEY[,Date],datatbKEY[,Time],sep=" ")] # the date and time are in 2 columns: we need to merge them
-datatbKEY[,Date:=fastPOSIXct(datatbKEY[,Date])]# This is much faster than to do it with "as.POSIXct" function from standart functionality
-datatbKEY[,Time:=NULL] # delete not needed column 
-datatbKEY[,Volume:=as.numeric(datatbKEY[,Volume])] # we need this in order to work with Volumes as integer is not enough
+# try creating datatable with keys
 
 ##############################################################################################################
 
