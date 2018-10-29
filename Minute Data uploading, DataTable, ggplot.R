@@ -20,30 +20,43 @@ datable <- lapply(tickers, function(i) {paste0(Path ,"/",i,".txt") %>%
 # fasttime::fastPOSIXct() doesn't work as it could be used only for 1 format
 
 
-# try creating datatable with keys
+# ---------------------------------------------------------------------------------------------------------------------
+# If you create a copy of datatable like this: data_backup <- datable...
+# ... they still will refere to one object...
+# ... if you modify "data_backup" or "datable"...
+# ... both of them will be modified...
+# Here "data_backup" or "datable" are like pointers to the same memory bucket
+
+data_backup_test <- datable
+.Internal(inspect(datable)) 
+.Internal(inspect(data_backup_test))
+
+data_backup <- copy(datable) # the "copy" function creates new object => "data_backup" and "datable" are independend
+.Internal(inspect(data_backup))
+datable_key <- copy(data_backup)
 
 
 # ---------------------------------------------------------------------------------------------------------------------
+# try creating datatable with keys
+setkey(datable_key,Ticker)
+
+system.time(datable[,sum(Volume), by="Ticker,Close"])
+system.time(datable_key[,sum(Volume), by="Ticker,Close"])
 
 
-tables() # shows list of created datables
-setkey(datable_key,Volume)
+system.time(datable[order(Volume)]) # much faster than base::order()
+system.time(datable_key[order(Volume)]) # much faster than base::order()
 
-datable <- NULL
-summary(datable)
-lapply(small_data,class)
-head(datable)
-head(datable_key)
+# ---------------------------------------------------------------------------------------------------------------------
 
-system.time(
 datable[,.N, by=Ticker] # .N stands for just number of lines
 datable[,length(Volume), by=Ticker]
 datable[,sum(Volume), by="Ticker,Close"]
-datable[,head(.SD,10), by=Ticker] # returns the first 3 rows for every ticker
+datable[,head(.SD,1), by=Ticker] # returns the first 3 rows for every ticker
 datable[,lapply(.SD,mean), by=Ticker] # .SD allows to run the mean by every column
 datable[(Close-Open)/Open>0.05 & Volume>10000]
 datable[,.(sum(Volume),.N), by=.(lubridate::wday(Date),hour(Date))] # volume of trades by day and hour
-)
+
 
 
 x <- datable[High-Close==0,.(Avg_Vol=mean(Volume),No_of_Trades=length(Volume)), by=Ticker]
@@ -59,15 +72,6 @@ Vol_over <-  dcast(datable[,.(Vol=round(sum(Volume)/1e6, 1)),  # to show in mill
 
 Vol_over
 Vol_over[,wday:=paste(wday,hour,sep=" ")][,':='(hour=NULL)] # 1st part merges days and hours; 2nd part deletes the not-needed hour column
-
-
-
-system.time(datable[,sum(Volume), by="Ticker,Close"])
-system.time(datable_key[,sum(Volume), by="Ticker,Close"])
-
-
-system.time(datable[order(Volume)]) # much faster than base::order()
-system.time(datable_key[order(Volume)]) # much faster than base::order()
 
 
 # ---------------------------------------------------------------------------------------------------------------------
