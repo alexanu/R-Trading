@@ -1,14 +1,11 @@
-library(dplyr) # use function "View"
-View(Old_Zorro_Content)
-View(New_Zorro_Content)
+dplyr::View(Old_Zorro_Content)
+dplyr::View(New_Zorro_Content)
 zorro_pages
 
 #========================================================================================================
-install.packages("rvest")
-install.packages("googlesheets") # many other useful pkges are installed as well
-install.packages("data.table")
-
-library(rvest)
+librarian::shelf(readr, feather, data.table,readit,ggplot2,magrittr, 
+		     fasttime, lubridate, anytime,
+		     rvest, googlesheets, dfCompare, dplyr)
 
 #Checking the chapters of Zorro
 zorro_content <-"http://www.zorro-trader.com/manual/ht_contents.htm"
@@ -27,9 +24,6 @@ paste0(zorro_root,test) %>%
   lapply(html_text) #Converting to text
 
 
-<<<<<<< HEAD
-xxxxx
-=======
 #========================================================================================================
 
 library(data.table)
