@@ -1,7 +1,7 @@
 install.packages("remotes")
 remotes::install_github("DesiQuintans/librarian")
 librarian::shelf(readr, feather, data.table,readit,ggplot2,magrittr, 
-                 fasttime, lubridate, anytime,
+                 fasttime, lubridate, anytime, stringr,
                  rvest, googledrive, tidyverse/googlesheets4,dfCompare, dplyr)
 
 # ------------------
@@ -21,3 +21,22 @@ parsing_quantpedia <- function(str_num){
 lapply(needed,parsing_quantpedia) %>% rbindlist() %>% .[.!="skip"] %>% setnames(1, 'Section')-> REPOS 
 View(REPOS)
 fwrite(x,"1.csv")
+
+page <- "https://quantpedia.com/screener/Details/118"
+links <- page %>% read_html() %>% html_nodes("a") %>% html_attr("href") %>% 
+         as.data.table() %>%
+         .[grep("http", .)] # leaving only rows, which contain http
+
+
+
+pg <- read_html(page) %>% html_nodes("p")
+xml_find_all(pg, ".//br") %>% xml_add_sibling("p", "\n")
+xml_find_all(pg, ".//br") %>% xml_remove()
+dt <- html_text(pg) %>% 
+      str_split("\n\n") %>% # split as tring
+      as.data.table() %>%
+      .[,last(.)] %>% as.data.table() %>% # leaving only last column
+      .[, c("Paper", "URL","skip","Abstract"):=tstrsplit(., "\n")] %>% # spliting a string into columns with a separator
+      .[,list(Paper,URL,Abstract)] # keeping only need columns
+
+View(dt)
