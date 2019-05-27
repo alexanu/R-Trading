@@ -12,10 +12,10 @@ email <- send.mail(from = sender,
                    smtp = list(host.name = "smtp.gmail.com",
                                port = 465, 
                                user.name="oanufriyev@gmail.com", 
-                               passwd="Theanswer1",
+                               passwd="Porosenok4231_",
                                ssl = TRUE),                   
                    authenticate = TRUE,
-                   attach.files = "./1.xlsx",
+                   #attach.files = "./1.xlsx",
                    send = TRUE,
                    debug = TRUE)
 
