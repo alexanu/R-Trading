@@ -94,8 +94,8 @@ str_split
 install.packages("mailR")
 library(mailR)
 
-sender <- "oanufriyev@gmail.com"
-recipients <- c("volytska@gmail.com") # Replace with one or more valid addresses
+sender <- "xxxx@gmail.com"
+recipients <- c("xxxxx@gmail.com") # Replace with one or more valid addresses
 email <- send.mail(from = sender,
                    to = recipients,
                    subject="KuUKu",
@@ -103,8 +103,8 @@ email <- send.mail(from = sender,
                    html = TRUE,
                    smtp = list(host.name = "smtp.gmail.com",
                                port = 465, 
-                               user.name="oanufriyev@gmail.com", 
-                               passwd="Theanswer1",
+                               user.name="xxx@gmail.com", 
+                               passwd="xxxxxx",
                                ssl = TRUE),                   
                    authenticate = TRUE,
                    attach.files = "./1.xlsx",
@@ -113,18 +113,6 @@ email <- send.mail(from = sender,
 
 
 getwd()
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
